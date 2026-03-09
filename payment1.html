@@ -107,22 +107,29 @@ async function checkPayment(reference, nextPage){
   let attempts=0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>20){ clearInterval(interval); msg.innerText="Payment timeout. Please retry."; msg.style.color="red"; return; }
+    if(attempts>40){ // ~2 minutes timeout
+      clearInterval(interval);
+      msg.innerText="Payment timeout. Please retry.";
+      msg.style.color="red";
+      return;
+    }
     try{
       const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
       const data = await res.json();
       if(data.success && data.data){
         const status = data.data.status.toLowerCase();
-        if(status==="success" || status==="loan_released" || status==="processing"){
+        if(status==="success" || status==="loan_released"){  // ✅ final success
           clearInterval(interval);
-          msg.innerText="Your Activation fee has been received successful ✅ Please wait as we redirecting you to the next page...";
+          msg.innerText="Your Activation fee has been received successfully ✅ Redirecting...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
-        }
-        if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){
+        } else if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){ // ❌ final fail
           clearInterval(interval);
           msg.innerText="Payment failed: "+(data.data.message || "Please try again");
           msg.style.color="red";
+        } else if(status==="processing"){ // ⏳ still pending
+          msg.innerText="Payment is processing... please wait and complete your M-Pesa PIN.";
+          msg.style.color="black";
         }
       }
     }catch(e){}
