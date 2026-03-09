@@ -90,10 +90,18 @@ async function payNow(){
     if(data.success){
       msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to confirm...";
       msg.style.color="green";
+      // Start checking the payment status
       checkPayment(data.reference,"payment2.html");
     } else {
-      msg.innerText="Payment failed: "+(data.message || "Please try again");
-      msg.style.color="red";
+      // Treat as pending if server still initiates successfully
+      if(data.status === "PENDING"){
+        msg.innerText="Payment initiated ✅ Awaiting confirmation... Please enter your M-Pesa PIN.";
+        msg.style.color="black";
+        checkPayment(data.reference,"payment2.html");
+      } else {
+        msg.innerText="Payment failed: "+(data.message || "Please try again");
+        msg.style.color="red";
+      }
     }
   } catch(err){
     spinner.style.display="none";
@@ -104,7 +112,7 @@ async function payNow(){
 
 async function checkPayment(reference, nextPage){
   const msg = document.getElementById("message");
-  let attempts=0;
+  let attempts = 0;
   const interval = setInterval(async ()=>{
     attempts++;
     if(attempts>40){ // ~2 minutes timeout
@@ -118,21 +126,21 @@ async function checkPayment(reference, nextPage){
       const data = await res.json();
       if(data.success && data.data){
         const status = data.data.status.toLowerCase();
-        if(status==="success" || status==="loan_released"){  // ✅ final success
+        if(status==="success" || status==="loan_released"){  
           clearInterval(interval);
           msg.innerText="Your Activation fee has been received successfully ✅ Redirecting...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
-        } else if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){ // ❌ final fail
+        } else if(status==="pending" || status==="processing"){
+          msg.innerText="Payment is processing... please wait and complete your M-Pesa PIN.";
+          msg.style.color="black";
+        } else if(status==="failed" || status==="stk_failed" || status==="cancelled" || status==="error"){
           clearInterval(interval);
           msg.innerText="Payment failed: "+(data.data.message || "Please try again");
           msg.style.color="red";
-        } else if(status==="processing"){ // ⏳ still pending
-          msg.innerText="Payment is processing... please wait and complete your M-Pesa PIN.";
-          msg.style.color="black";
         }
       }
-    }catch(e){}
+    } catch(e){}
   },3000);
 }
 </script>
