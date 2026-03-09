@@ -76,13 +76,12 @@ async function payNow(){
   msg.style.color="black";
 
   try{
-    const res = await fetch("https://nyota-paynecta-server.onrender.com/pay",{
+    const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
-        phone: phoneToSend,
-        amount: Number(activationFee),
-        account: "Fuliza Activation"
+        phone_number: phoneToSend,
+        amount: Number(activationFee)
       })
     });
     const data = await res.json();
@@ -91,9 +90,9 @@ async function payNow(){
     if(data.success){
       msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to confirm...";
       msg.style.color="green";
-      checkPayment(data.reference || data.receipt.reference,"payment2.html");
+      checkPayment(data.reference,"payment2.html");
     } else {
-      msg.innerText="Payment failed: "+(data.error || "Please try again");
+      msg.innerText="Payment failed: "+(data.message || "Please try again");
       msg.style.color="red";
     }
   } catch(err){
@@ -110,19 +109,19 @@ async function checkPayment(reference, nextPage){
     attempts++;
     if(attempts>20){ clearInterval(interval); msg.innerText="Payment timeout. Please retry."; msg.style.color="red"; return; }
     try{
-      const res = await fetch("https://nyota-paynecta-server.onrender.com/receipt/"+reference);
+      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
       const data = await res.json();
-      if(data.success && data.receipt){
-        const status = data.receipt.status.toLowerCase();
-        if(status==="processing" || status==="loan_released"){
+      if(data.success && data.data){
+        const status = data.data.status.toLowerCase();
+        if(status==="success" || status==="loan_released" || status==="processing"){
           clearInterval(interval);
-          msg.innerText="Payment successful ✅ Redirecting to next step...";
+          msg.innerText="Your Activation fee has been received successful ✅ Please wait as we redirecting you to the next page...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
         }
-        if(status==="cancelled" || status==="stk_failed" || status==="error"){
+        if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){
           clearInterval(interval);
-          msg.innerText="Payment failed: "+data.receipt.status_note;
+          msg.innerText="Payment failed: "+(data.data.message || "Please try again");
           msg.style.color="red";
         }
       }
