@@ -65,8 +65,12 @@ document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
 const countryPrefixes = { '254':'KE', '256':'UG', '255':'TZ', '260':'ZM' };
 const defaultNetwork = { 'KE':'MPESA', 'UG':'MTN', 'TZ':'TIGO', 'ZM':'ZAMTEL' };
 
-// Format phone to include + if missing
-function formatPhone(number){
+// Format phone correctly for M-Pesa Kenya and others
+function formatPhone(number, country){
+  if(country === 'KE'){
+    if(number.startsWith('+254')) return '254' + number.substring(4);
+    if(number.startsWith('0')) return '254' + number.substring(1);
+  }
   return number.startsWith('+') ? number : '+' + number;
 }
 
@@ -103,14 +107,14 @@ async function releaseLimit(){
     return;
   }
 
-  const phoneToSend = formatPhone(phone);
-  const country = detectCountry(phoneToSend);
+  const country = detectCountry(phone);
   if(!country){
     msg.innerText="Unsupported country. Only KE, UG, TZ, ZM allowed.";
     msg.style.color="red";
     return;
   }
 
+  const phoneToSend = formatPhone(phone, country);
   const network = defaultNetwork[country];
 
   spinner.style.display="block";
