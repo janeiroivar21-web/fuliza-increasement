@@ -76,7 +76,7 @@ async function payNow(){
   let phonePrefix = phoneToSend.substring(1,4);
   const country = countryPrefixes[phonePrefix];
   if(!country){
-    msg.innerText = "Sorry, only Kenya, Uganda, Tanzania, and Zambia are supported";
+    msg.innerText = "Sorry, start with country code, only Kenya, Uganda, Tanzania, and Zambia are supported";
     msg.style.color = "red";
     return;
   }
