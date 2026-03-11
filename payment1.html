@@ -226,13 +226,13 @@ function validatePhoneUI(val) {
     phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
     return false;
   }
-  if (!val.startsWith("7")) {
-    phoneWrap.className = "phone-wrap invalid";
-    phoneStatus.innerText = "✗";
-    phoneStatus.style.color = "#e74c3c";
-    phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Must start with 7 — Safaricom only (e.g. 7XXXXXXXX)";
-    return false;
+  if (!val.startsWith("7") && !val.startsWith("1")) {
+  phoneWrap.className = "phone-wrap invalid";
+  phoneStatus.innerText = "✗";
+  phoneStatus.style.color = "#e74c3c";
+  phoneHint.style.color = "#e74c3c";
+  phoneHint.innerText = "Must start with 7 or 1 — Safaricom only (e.g. 712345678 or 112345678)";
+  return false;
   }
   phoneWrap.className = "phone-wrap valid";
   phoneStatus.innerText = "✓";
