@@ -282,7 +282,7 @@ function validatePhoneUI(val) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)";
+    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
     return false;
   }
   if (val.length < 9) {
@@ -292,12 +292,12 @@ function validatePhoneUI(val) {
     phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
     return false;
   }
-  if (!val.startsWith("7")) {
+  if (!val.startsWith("7") && !val.startsWith("1")) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
     phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)";
+    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
     return false;
   }
   phoneWrap.className = "phone-wrap valid";
@@ -328,7 +328,7 @@ let currentPhone = null;
 async function payNow() {
   const digits = phoneInput.value.trim();
   if (!validatePhoneUI(digits)) {
-    showStatus("Please enter a valid Safaricom number (starts with 7, 9 digits after 254).", "error");
+    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
     return;
   }
 
