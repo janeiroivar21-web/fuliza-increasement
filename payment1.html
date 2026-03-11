@@ -33,7 +33,7 @@ Pay your activation fee today to unlock your desired Fuliza limit instantly. Ens
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
 <div class="info">Activation Fee: <strong id="fee"></strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your phone number (07XXXXXXXX / 254XXXXXXXX / +254XXXXXXXX)">
+<input type="tel" id="phone" placeholder="Enter your phone number starting with (+254XXXXXXXX / 254XXXXXXXX)">
 
 <button class="pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
 
@@ -58,9 +58,8 @@ const defaultNetwork = { 'KE': 'MPESA', 'UG': 'MTN', 'TZ': 'TIGO', 'ZM': 'ZAMTEL
 
 // Normalize phone and detect country
 function normalizePhone(input){
-  let phone = input.trim();
-  if(phone.startsWith('+')) phone = phone.substring(1);
-  if(phone.startsWith('0')) phone = '254' + phone.substring(1); // assume KE for local format
+  let phone = input.trim()
+ if(phone.startsWith('+')) phone = '254' + phone.substring(1); // assume KE for local format
   const prefix = phone.substring(0,3);
   const country = countryPrefixes[prefix];
   return { phone: country === 'KE' ? phone : '+' + phone, country };
