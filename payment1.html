@@ -226,7 +226,7 @@ function validatePhoneUI(val) {
     phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
     return false;
   }
-  if (!(val.startsWith("7") || val.startsWith("01"))) {
+  if (!(val.startsWith("7") || val.startsWith("1"))) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
