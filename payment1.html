@@ -110,11 +110,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     <label style="font-size:14px;font-weight:600;color:#444;">Safaricom Phone Number</label>
     <div class="phone-wrap" id="phoneWrap">
       <span class="phone-prefix">254</span>
-      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
-      <span class="phone-status" id="phoneStatus"></span>
-    </div>
-    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
-  </div>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX or 1XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+<div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)</div>
 
   <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
 
