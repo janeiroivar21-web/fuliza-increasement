@@ -6,20 +6,20 @@
 <title>Customer Commitment Fee</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh;}
 
-.top-bar{background:linear-gradient(135deg,#3b5bdb,#2344c7);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 
 .page-wrap{max-width:430px;margin:36px auto 30px;padding:0 12px;}
 
 .step-badge{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-.step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3b5bdb,#2344c7);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.step-line{flex:1;height:2px;background:#c5d0fa;border-radius:2px;}
+.step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-line{flex:1;height:2px;background:#d4edda;border-radius:2px;}
 .step-label{font-size:12.5px;color:#888;white-space:nowrap;}
 
 .invoice-card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;margin-bottom:16px;}
 
-.invoice-header{background:linear-gradient(135deg,#3b5bdb,#2344c7);padding:22px 24px 18px;color:#fff;}
+.invoice-header{background:linear-gradient(135deg,#1fb141,#16903a);padding:22px 24px 18px;color:#fff;}
 .invoice-header-top{display:flex;justify-content:space-between;align-items:flex-start;}
 .invoice-title{font-size:16px;font-weight:700;letter-spacing:.2px;}
 .invoice-tag{background:rgba(255,255,255,.2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.5px;}
@@ -34,37 +34,37 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh
 .checklist{padding:18px 24px;}
 .checklist-title{font-size:12px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
 .check-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
-.check-icon{width:20px;height:20px;border-radius:50%;background:#e8eeff;color:#3b5bdb;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.check-icon{width:20px;height:20px;border-radius:50%;background:#e8f5e9;color:#1fb141;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
 .check-text{font-size:13.5px;color:#444;line-height:1.45;}
 
 .invoice-divider{height:1px;background:#f0f0f0;margin:0 24px;}
 
-.commitment-note{margin:0 24px;padding:14px;background:#eef2ff;border-left:4px solid #3b5bdb;border-radius:4px;font-size:12.5px;color:#2344c7;line-height:1.6;}
+.commitment-note{margin:0 24px;padding:14px;background:#e8f5e9;border-left:4px solid #1fb141;border-radius:4px;font-size:12.5px;color:#16903a;line-height:1.6;}
 
 .pay-section{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);padding:24px;}
 .pay-section-title{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;}
 .pay-section-sub{font-size:12.5px;color:#888;margin-bottom:16px;}
 
 .phone-wrap{display:flex;align-items:center;border:2px solid #ddd;border-radius:10px;overflow:hidden;transition:border-color .2s;}
-.phone-wrap:focus-within{border-color:#3b5bdb;}
+.phone-wrap:focus-within{border-color:#1fb141;}
 .phone-wrap.invalid{border-color:#e74c3c;}
-.phone-wrap.valid{border-color:#3b5bdb;}
-.phone-prefix{background:#eef2ff;color:#3b5bdb;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;white-space:nowrap;user-select:none;}
+.phone-wrap.valid{border-color:#1fb141;}
+.phone-prefix{background:#e8f5e9;color:#1fb141;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;white-space:nowrap;user-select:none;}
 .phone-input{flex:1;border:none;outline:none;padding:13px 12px;font-size:16px;color:#333;background:transparent;}
 .phone-status{padding:0 12px;font-size:18px;}
 .phone-hint{font-size:12px;color:#888;margin-top:5px;}
 
-.pay-btn{margin-top:18px;width:100%;padding:15px;background:linear-gradient(135deg,#3b5bdb,#2344c7);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;}
+.pay-btn{margin-top:18px;width:100%;padding:15px;background:linear-gradient(135deg,#1fb141,#16903a);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;}
 .pay-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,91,219,.4);}
 .pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
 
 .spinner{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #3b5bdb;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
+.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .spinner-text{font-size:13px;color:#666;}
 
 .status-msg{margin-top:14px;font-size:14px;font-weight:500;padding:10px 14px;border-radius:8px;display:none;}
-.status-msg.info{background:#eef2ff;color:#2344c7;}
+.status-msg.info{background:#e8f5e9;color:#16903a;}
 .status-msg.error{background:#fdecea;color:#c0392b;}
 
 .secure-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:12px;color:#aaa;}
@@ -76,7 +76,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh
 .overlay.show .popup{transform:translateY(0);}
 
 .popup-header{border-radius:22px 22px 0 0;padding:28px 24px 22px;text-align:center;}
-.popup-header.success{background:linear-gradient(135deg,#3b5bdb,#2344c7);}
+.popup-header.success{background:linear-gradient(135deg,#1fb141,#16903a);}
 .popup-header.failure{background:linear-gradient(135deg,#e74c3c,#c0392b);}
 .popup-header.confirm{background:linear-gradient(135deg,#f39c12,#d68910);}
 .popup-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:30px;}
@@ -89,17 +89,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh
 .receipt-label{color:#888;font-weight:500;}
 .receipt-value{color:#1a1a2e;font-weight:600;text-align:right;max-width:60%;}
 
-.purpose-note{margin:16px 24px 0;background:#eef2ff;border-left:4px solid #3b5bdb;border-radius:4px;padding:10px 14px;font-size:13px;color:#2344c7;line-height:1.5;}
+.purpose-note{margin:16px 24px 0;background:#e8f5e9;border-left:4px solid #1fb141;border-radius:4px;padding:10px 14px;font-size:13px;color:#16903a;line-height:1.5;}
 .purpose-note.failure-note{background:#fff5f5;border-left-color:#e74c3c;color:#8b0000;}
 
 .countdown-wrap{margin:20px 24px 0;text-align:center;}
 .countdown-text{font-size:13.5px;color:#666;margin-bottom:8px;}
-.countdown-text span{font-weight:700;color:#3b5bdb;font-size:16px;}
-.progress-bar-bg{background:#eef2ff;border-radius:100px;height:6px;overflow:hidden;}
-.progress-bar-fill{background:linear-gradient(90deg,#3b5bdb,#2344c7);height:100%;border-radius:100px;transition:width 1s linear;}
+.countdown-text span{font-weight:700;color:#1fb141;font-size:16px;}
+.progress-bar-bg{background:#e8f5e9;border-radius:100px;height:6px;overflow:hidden;}
+.progress-bar-fill{background:linear-gradient(90deg,#1fb141,#16903a);height:100%;border-radius:100px;transition:width 1s linear;}
 
 .popup-actions{display:flex;gap:12px;padding:20px 24px 0;}
-.btn-proceed{flex:1;padding:14px;background:linear-gradient(135deg,#3b5bdb,#2344c7);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.btn-proceed{flex:1;padding:14px;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;}
 .btn-proceed:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(59,91,219,.4);}
 .btn-retry{flex:1;padding:14px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
 .btn-retry:hover{transform:translateY(-2px);}
@@ -206,7 +206,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#eef2ff;min-height:100vh
       <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>
       <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>
       <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>
-      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#3b5bdb;">Completed ✓</span></div>
+      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#1fb141;">Completed ✓</span></div>
     </div>
     <div class="purpose-note" id="rPurpose">
       Commitment fee received — your Fuliza limit upgrade is confirmed. One final clearance step remains to activate your new limit.
@@ -283,7 +283,7 @@ function validatePhoneUI(val) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 (e.g. 712345678)";
+    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
     return false;
   }
   if (val.length < 9) {
@@ -293,18 +293,18 @@ function validatePhoneUI(val) {
     phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
     return false;
   }
-  if (!val.startsWith("7")) {
+  if (!val.startsWith("7") && !val.startsWith("1")) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
     phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Must start with 7 — Safaricom only (e.g. 7XXXXXXXX)";
+    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
     return false;
   }
   phoneWrap.className = "phone-wrap valid";
   phoneStatus.innerText = "✓";
-  phoneStatus.style.color = "#3b5bdb";
-  phoneHint.style.color = "#3b5bdb";
+  phoneStatus.style.color = "#1fb141";
+  phoneHint.style.color = "#1fb141";
   phoneHint.innerText = "Valid Safaricom number ✓";
   return true;
 }
@@ -329,7 +329,7 @@ let currentPhone = null;
 async function payNow() {
   const digits = phoneInput.value.trim();
   if (!validatePhoneUI(digits)) {
-    showStatus("Please enter a valid Safaricom number (starts with 7, 9 digits after 254).", "error");
+    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
     return;
   }
 
