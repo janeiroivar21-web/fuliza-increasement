@@ -79,7 +79,7 @@ async function payNow(){
 
   const { phone: phoneToSend, country } = normalizePhone(phoneInput);
   if(!country){
-    msg.innerText = "Unsupported country. Only Kenya, Uganda, Tanzania, Zambia allowed.";
+    msg.innerText = "Invalid phone number,Kindly start with +254.";
     msg.style.color = "red";
     return;
   }
