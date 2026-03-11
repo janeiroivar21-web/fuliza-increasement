@@ -148,7 +148,7 @@ async function payNow(){
     if(data.success){
       msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm";
       msg.style.color="green";
-      checkPayment(data.reference,"payment5.html");
+      checkPayment(data.reference,"payment4.html");
     } else {
       msg.innerText="Payment failed: "+(data.message || "Try again");
       msg.style.color="red";
