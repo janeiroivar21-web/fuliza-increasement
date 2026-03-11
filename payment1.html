@@ -216,7 +216,7 @@ function validatePhoneUI(val) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 (e.g. 712345678)";
+    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)";
     return false;
   }
   if (val.length < 9) {
