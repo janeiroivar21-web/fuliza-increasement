@@ -110,10 +110,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     <label style="font-size:14px;font-weight:600;color:#444;">Safaricom Phone Number</label>
     <div class="phone-wrap" id="phoneWrap">
       <span class="phone-prefix">254</span>
-      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
-      <span class="phone-status" id="phoneStatus"></span>
-    </div>
-    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+      <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX or 1XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
+<div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)</div>
   </div>
 
   <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
@@ -216,9 +214,10 @@ function validatePhoneUI(val) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 (e.g. 712345678)";
+    phoneHint.innerText = "Enter 9 digits after 254 — must start with 7 or 1 (e.g. 712345678 or 112345678)";
     return false;
   }
+
   if (val.length < 9) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
@@ -226,21 +225,24 @@ function validatePhoneUI(val) {
     phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
     return false;
   }
-  if (!val.startsWith("7")) {
+
+  // Accept numbers starting with 7 or 1
+  if (!val.startsWith("7") && !val.startsWith("1")) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
     phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Must start with 7 — Safaricom only (e.g. 7XXXXXXXX)";
+    phoneHint.innerText = "Must start with 7 or 1 — Safaricom only (e.g. 7XXXXXXXX or 1XXXXXXXX)";
     return false;
   }
+
   phoneWrap.className = "phone-wrap valid";
   phoneStatus.innerText = "✓";
   phoneStatus.style.color = "#1fb141";
   phoneHint.style.color = "#1fb141";
   phoneHint.innerText = "Valid Safaricom number ✓";
   return true;
-}
+  }
 
 function showStatus(msg, type) {
   const el = document.getElementById("statusMsg");
