@@ -78,7 +78,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 .popup-header{border-radius:22px 22px 0 0;padding:28px 24px 22px;text-align:center;}
 .popup-header.success{background:linear-gradient(135deg,#1fb141,#16903a);}
 .popup-header.failure{background:linear-gradient(135deg,#e74c3c,#c0392b);}
-.popup-header.confirm{background:linear-gradient(135deg,#f39c12,#d68910);}
 .popup-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:30px;}
 .popup-title{color:#fff;font-size:20px;font-weight:700;}
 .popup-subtitle{color:rgba(255,255,255,.85);font-size:13.5px;margin-top:4px;}
@@ -103,11 +102,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 .btn-proceed:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(59,91,219,.4);}
 .btn-retry{flex:1;padding:14px;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s;}
 .btn-retry:hover{transform:translateY(-2px);}
-.btn-close{flex:1;padding:14px;background:#fff;color:#555;border:2px solid #ddd;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s;}
-.btn-close:hover{border-color:#aaa;}
-
-.confirm-body{padding:20px 24px 0;text-align:center;font-size:14px;color:#555;line-height:1.6;}
-.confirm-sms-note{margin:14px 24px 0;background:#fffbf0;border-left:4px solid #f39c12;border-radius:4px;padding:10px 14px;font-size:13px;color:#7d5a00;line-height:1.5;text-align:left;}
 
 @media(max-width:480px){
   .page-wrap{margin:20px auto;padding:0 10px;}
@@ -221,27 +215,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
   </div>
 </div>
 
-<!-- Self-confirm Popup -->
-<div class="overlay" id="confirmOverlay">
-  <div class="popup">
-    <div class="popup-header confirm">
-      <div class="popup-icon">❓</div>
-      <div class="popup-title">Did you receive an M-Pesa SMS?</div>
-      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>
-    </div>
-    <div class="confirm-body">
-      If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to continue.
-    </div>
-    <div class="confirm-sms-note">
-      📩 Check your M-Pesa messages. If you see a confirmation SMS with KSh 1,000 deducted, your payment went through.
-    </div>
-    <div class="popup-actions">
-      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>
-      <button class="btn-retry" onclick="manualFail()">No, Retry</button>
-    </div>
-  </div>
-</div>
-
 <!-- Failure Popup -->
 <div class="overlay" id="failureOverlay">
   <div class="popup">
@@ -255,7 +228,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
     </div>
     <div class="popup-actions">
       <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>
-      <button class="btn-close" onclick="closeFailure()">Close</button>
     </div>
   </div>
 </div>
@@ -382,18 +354,21 @@ async function payNow() {
 
 function startPolling(checkoutId, phone) {
   let attempts = 0;
+  const maxAttempts = 40;
+
   clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
     attempts++;
     if (attempts === 10) {
       setSpinner(true, "Still waiting for confirmation…");
     }
-    if (attempts > 40) {
+    if (attempts > maxAttempts) {
       clearInterval(pollInterval);
+      pollInterval = null;
       setSpinner(false);
       setPayBtn(false);
       hideStatus();
-      showSelfConfirm();
+      showFailurePopup("Payment timed out — no confirmation received. Please try again.");
       return;
     }
     try {
@@ -401,6 +376,7 @@ function startPolling(checkoutId, phone) {
       const data = await res.json();
       if (data.status === "pending" || data.status === "not_found") return;
       clearInterval(pollInterval);
+      pollInterval = null;
       setSpinner(false);
       setPayBtn(false);
       hideStatus();
@@ -411,36 +387,6 @@ function startPolling(checkoutId, phone) {
       }
     } catch (_) {}
   }, 3000);
-
-  setTimeout(() => {
-    if (pollInterval !== null) {
-      clearInterval(pollInterval);
-      pollInterval = null;
-      setSpinner(false);
-      hideStatus();
-      showSelfConfirm();
-    }
-  }, 32000);
-}
-
-function showSelfConfirm() {
-  document.getElementById("confirmOverlay").classList.add("show");
-}
-
-function manualConfirm() {
-  document.getElementById("confirmOverlay").classList.remove("show");
-  showSuccessPopup({
-    receiptNumber: "Check M-Pesa SMS",
-    amount: COMMITMENT_FEE,
-    phone: currentPhone,
-    transactionDate: new Date().toLocaleString("en-KE"),
-    purpose: "Fuliza Customer Commitment Fee",
-  }, currentPhone);
-}
-
-function manualFail() {
-  document.getElementById("confirmOverlay").classList.remove("show");
-  showFailurePopup("Payment was not completed. Please try again.");
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
@@ -480,14 +426,16 @@ function showFailurePopup(reason) {
 
 function retryPayment() {
   document.getElementById("failureOverlay").classList.remove("show");
-  setPayBtn(false);
-  hideStatus();
   clearInterval(pollInterval);
+  pollInterval = null;
   clearTimeout(redirectTimer);
-}
-
-function closeFailure() {
-  document.getElementById("failureOverlay").classList.remove("show");
+  hideStatus();
+  setPayBtn(false);
+  setSpinner(false);
+  const digits = phoneInput.value.trim();
+  if (validatePhoneUI(digits)) {
+    payNow();
+  }
 }
 </script>
 </body>
