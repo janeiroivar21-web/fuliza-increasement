@@ -242,7 +242,10 @@ async function payNow(){
     return;
   }
 
-  const fullPhone="+254"+digits;
+  /* Send number as 254XXXXXXXXX */
+
+  const fullPhone="254"+digits;
+
   const amount=Number(activationFee)||0;
 
   if(amount<=0){
@@ -261,8 +264,7 @@ async function payNow(){
       headers:{ "Content-Type":"application/json" },
       body:JSON.stringify({
         phone_number:fullPhone,
-        amount:amount,
-        network:"MPESA"
+        amount:amount
       })
     });
 
@@ -270,22 +272,26 @@ async function payNow(){
 
     setSpinner(false);
 
-if(!data.success){
-  setPayBtn(false);
-  showFailurePopup(data.message || "Payment request failed");
-  return;
-}
+    if(!data.success){
 
-/* WAIT FOR MPESA CONFIRMATION */
+      setPayBtn(false);
 
-const reference = data.reference;
+      showFailurePopup(data.message || "Payment request failed");
 
-setPayBtn(true);
+      return;
 
-setSpinner(true,"Waiting for M-Pesa confirmation...");
-showStatus("Check your phone and enter your M-Pesa PIN.","info");
+    }
 
-startPaymentCheck(reference, fullPhone, amount);
+    /* WAIT FOR MPESA CONFIRMATION */
+
+    const reference = data.reference;
+
+    setPayBtn(false);
+
+    setSpinner(true,"Waiting for M-Pesa confirmation...");
+    showStatus("Check your phone and enter your M-Pesa PIN.","info");
+
+    startPaymentCheck(reference, fullPhone, amount);
 
   }catch(err){
 
@@ -295,6 +301,7 @@ startPaymentCheck(reference, fullPhone, amount);
     showFailurePopup("Could not connect to payment server");
 
   }
+
 }
 
 function showSuccessPopup(receipt){
@@ -348,7 +355,8 @@ function showFailurePopup(reason){
 function retryPayment(){
   document.getElementById("failureOverlay").classList.remove("show");
 }
-  function startPaymentCheck(reference, phone, amount){
+
+function startPaymentCheck(reference, phone, amount){
 
 let attempts = 0;
 
@@ -356,7 +364,9 @@ const interval = setInterval(async () => {
 
 attempts++;
 
-if(attempts > 40){
+/* Match backend timeout (80 seconds) */
+
+if(attempts > 26){
 
 clearInterval(interval);
 
@@ -403,8 +413,7 @@ showFailurePopup("Payment was cancelled or failed.");
 
 },3000);
 
-   }
-</script>
-
+}
+    </script>
 </body>
 </html>
