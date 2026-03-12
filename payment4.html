@@ -404,7 +404,7 @@ function startPolling(reference, phone) {
 
       const data = await res.json();
 
-      if (data.status === "pending" || data.status === "not_found") return;
+      if (data.status === "pending" || data.status === "unknown") return;
 
       clearInterval(pollInterval);
 
