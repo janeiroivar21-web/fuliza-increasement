@@ -1,4 +1,5 @@
-<!DOCTYPE html>  <html lang="en">  
+<!DOCTYPE html>  
+<html lang="en">  
 <head>  
 <meta charset="UTF-8">  
 <meta name="viewport" content="width=device-width, initial-scale=1.0">  
@@ -422,17 +423,15 @@ function showSuccessPopup(receipt, fallbackPhone) {
   
   launchConfetti();  
   playCelebrationSound();  
-  // Redirect to success.html after 18 seconds  
+  // Redirect to success.html after 10 seconds  
   setTimeout(() => {  
     window.location.href = "success.html";  
-  }, 18000); // 18000 ms = 18 seconds  
+  }, 10000); // 10000 ms = 10 seconds  
 }  
   
 function closeSuccess() {  
   document.getElementById("successOverlay").classList.remove("show");  
   stopConfetti();  
-  // redirect immediately when user clicks "Done"  
-  window.location.href = "success.html";  
 }  
   
 function showFailurePopup(reason) {  
@@ -453,5 +452,6 @@ function retryPayment() {
   setSpinner(false);  
   setPayBtn(false);  
 }  
-</script>  </body>  
-  </html>
+</script> 
+</body>  
+</html>
