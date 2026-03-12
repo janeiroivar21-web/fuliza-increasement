@@ -446,6 +446,10 @@ function showSuccessPopup(receipt, fallbackPhone) {
 
   launchConfetti();
   playCelebrationSound();
+  // Redirect to success.html after 18 seconds
+  setTimeout(() => {
+    window.location.href = "success.html";
+  }, 18000); // 18000 ms = 18 seconds
 }
 
 function closeSuccess() {
