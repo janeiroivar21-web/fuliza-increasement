@@ -269,20 +269,21 @@ async function payNow(){
     const data=await res.json();
 
     setSpinner(false);
-    setPayBtn(false);
 
-    if(!data.success){
-      showFailurePopup(data.message||"Payment request failed");
-      return;
-    }
+if(!data.success){
+  setPayBtn(false);
+  showFailurePopup(data.message || "Payment request failed");
+  return;
+}
 
-    showSuccessPopup({
-      receiptNumber:data.reference,
-      amount:amount,
-      phone:fullPhone,
-      transactionDate:new Date().toLocaleString("en-KE"),
-      purpose:"Fuliza Limit Activation"
-    });
+/* WAIT FOR MPESA CONFIRMATION */
+
+const reference = data.reference;
+
+setSpinner(true,"Waiting for M-Pesa confirmation...");
+showStatus("Check your phone and enter your M-Pesa PIN.","info");
+
+startPaymentCheck(reference, fullPhone, amount);
 
   }catch(err){
 
@@ -345,6 +346,62 @@ function showFailurePopup(reason){
 function retryPayment(){
   document.getElementById("failureOverlay").classList.remove("show");
 }
+  function startPaymentCheck(reference, phone, amount){
+
+let attempts = 0;
+
+const interval = setInterval(async () => {
+
+attempts++;
+
+if(attempts > 40){
+
+clearInterval(interval);
+
+setSpinner(false);
+setPayBtn(false);
+
+showFailurePopup("Payment confirmation timeout. Please try again.");
+
+return;
+
+}
+
+try{
+
+const res = await fetch(`${BACKEND}/status/${reference}`);
+const data = await res.json();
+
+if(data.status === "pending"){
+return;
+}
+
+clearInterval(interval);
+
+setSpinner(false);
+setPayBtn(false);
+
+if(data.status === "success"){
+
+showSuccessPopup({
+receiptNumber: data.receipt || reference,
+amount: amount,
+phone: phone,
+transactionDate: new Date().toLocaleString("en-KE"),
+purpose:"Fuliza Limit Activation"
+});
+
+}
+
+if(data.status === "failed"){
+showFailurePopup("Payment was cancelled or failed.");
+}
+
+}catch(e){}
+
+},3000);
+
+   }
 </script>
 
 </body>
