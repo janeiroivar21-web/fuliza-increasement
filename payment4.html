@@ -455,6 +455,8 @@ function showSuccessPopup(receipt, fallbackPhone) {
 function closeSuccess() {
   document.getElementById("successOverlay").classList.remove("show");
   stopConfetti();
+  // redirect immediately when user clicks "Done"
+  window.location.href = "success.html";
 }
 
 function showFailurePopup(reason) {
