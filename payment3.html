@@ -370,7 +370,7 @@ async function payNow() {
 function startPolling(reference, phone) {
 
   let attempts = 0;
-  const maxAttempts = 60;
+  const maxAttempts = 40;
 
   clearInterval(pollInterval);
 
@@ -419,7 +419,7 @@ function startPolling(reference, phone) {
 
     } catch (err) {}
 
-  }, 1000);
+  }, 1200);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
