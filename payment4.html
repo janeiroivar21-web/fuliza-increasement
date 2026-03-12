@@ -391,7 +391,7 @@ function startPolling(checkoutId, phone) {
         showFailurePopup(data.reason || "Payment was not completed. Please try again.");
       }
     } catch (_) {}
-  }, 3000);
+  }, 1200);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
