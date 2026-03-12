@@ -101,7 +101,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <input class="phone-input" type="tel" id="phone" placeholder="7XXXXXXXX" maxlength="9" inputmode="numeric" autocomplete="tel">
       <span class="phone-status" id="phoneStatus"></span>
     </div>
-    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
+    <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)</div>
   </div>
 
   <button class="pay-btn" id="payBtn" onclick="payNow()">Pay Activation Fee Now</button>
@@ -296,7 +296,7 @@ async function payNow(){
   }catch(err){
 
     setSpinner(false);
-    setPayBtn(false);
+    setPayBtn(true);
 
     showFailurePopup("Could not connect to payment server");
 
@@ -366,7 +366,7 @@ attempts++;
 
 /* Match backend timeout (80 seconds) */
 
-if(attempts > 26){
+if(attempts > 53){
 
 clearInterval(interval);
 
@@ -411,7 +411,7 @@ showFailurePopup("Payment was cancelled or failed.");
 
 }catch(e){}
 
-},3000);
+},1500);
 
 }
     </script>
