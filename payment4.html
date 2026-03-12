@@ -213,7 +213,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <button class="btn-retry" onclick="retryPayment()">↩ Try Again</button>  
     </div>  
   </div>  
-</div>  <script>  
+</div>  
+<script>  
 const BACKEND = "https://mpayafrica-server.onrender.com";  
   
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";  
@@ -423,10 +424,6 @@ function showSuccessPopup(receipt, fallbackPhone) {
   
   launchConfetti();  
   playCelebrationSound();  
-  // Redirect to success.html after 10 seconds  
-  setTimeout(() => {  
-    window.location.href = "success.html";  
-  }, 10000); // 10000 ms = 10 seconds  
 }  
   
 function closeSuccess() {  
@@ -452,6 +449,6 @@ function retryPayment() {
   setSpinner(false);  
   setPayBtn(false);  
 }  
-</script> 
+</script>  
 </body>  
 </html>
