@@ -366,7 +366,7 @@ attempts++;
 
 /* Match backend timeout (80 seconds) */
 
-if(attempts > 53){
+if(attempts > 40){
 
 clearInterval(interval);
 
@@ -411,7 +411,7 @@ showFailurePopup("Payment was cancelled or failed.");
 
 }catch(e){}
 
-},1500);
+},1200);
 
 }
     </script>
