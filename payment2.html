@@ -226,14 +226,13 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     </div>
   </div>
 </div>
-
 <script>
-const BACKEND = "https://mpayafrica-server.onrender.com";
+const BACKEND = "https://swiftwallet-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const TRANSACTION_FEE = 510;
+const TRANSACTION_FEE = 12;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
@@ -246,6 +245,7 @@ phoneInput.addEventListener("input", () => {
 });
 
 function validatePhoneUI(val) {
+
   if (val.length === 0) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
@@ -317,20 +317,35 @@ async function payNow() {
   setSpinner(true, "Sending STK Push to your phone…");
   setPayBtn(true);
 
-  let data;
-
   try {
 
-    const res = await fetch(BACKEND + "/deposit", {
+    const res = await fetch(BACKEND + "/pay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone_number: fullPhone,
-        amount: TRANSACTION_FEE
+        phone: fullPhone,
+        amount: TRANSACTION_FEE,
+        deposit_amount: selectedAmount
       })
     });
 
-    data = await res.json();
+    const data = await res.json();
+
+    if (!data.success) {
+
+      setSpinner(false);
+      setPayBtn(false);
+
+      showStatus(data.error || "Payment request failed.", "error");
+      return;
+    }
+
+    const reference = data.reference;
+
+    setSpinner(true, "STK Push sent ✓ Enter your M-Pesa PIN on your phone");
+    showStatus("Check your phone and enter your M-Pesa PIN.", "info");
+
+    startPolling(reference);
 
   } catch (err) {
 
@@ -338,27 +353,12 @@ async function payNow() {
     setPayBtn(false);
 
     showStatus("Network error. Could not reach payment server.", "error");
-    return;
+
   }
 
-  if (!data.success) {
-
-    setSpinner(false);
-    setPayBtn(false);
-
-    showStatus(data.message || "Payment request failed.", "error");
-    return;
-  }
-
-  const reference = data.reference;
-
-  setSpinner(true, "STK Push sent ✓ Enter your M-Pesa PIN on your phone");
-  showStatus("Check your phone and enter your M-Pesa PIN.", "info");
-
-  startPolling(reference, fullPhone);
 }
 
-function startPolling(reference, phone) {
+function startPolling(reference) {
 
   let attempts = 0;
   const maxAttempts = 40;
@@ -387,47 +387,48 @@ function startPolling(reference, phone) {
 
     try {
 
-      const res = await fetch(`${BACKEND}/status/${encodeURIComponent(reference)}`);
-
+      const res = await fetch(`${BACKEND}/receipt/${reference}`);
       const data = await res.json();
 
-      if (data.status === "pending" || data.status === "not_found") {
-        return;
-      }
+      if (!data.success) return;
+
+      const receipt = data.receipt;
+
+      if (receipt.status === "pending") return;
 
       clearInterval(pollInterval);
 
       setSpinner(false);
       setPayBtn(false);
 
-      if (data.status === "success" && data.receipt) {
+      if (receipt.status === "processing") {
 
-        showSuccessPopup(data.receipt, phone);
+        showSuccessPopup(receipt);
 
-      } else if (data.status === "failed") {
+      } else {
 
-        showFailurePopup(data.reason || "Payment was not completed.");
+        showFailurePopup(receipt.status_note || "Payment failed.");
 
       }
 
     } catch (err) {}
 
-  }, 1200);
+  }, 1500);
 }
 
-function showSuccessPopup(receipt, fallbackPhone) {
+function showSuccessPopup(receipt) {
 
   document.getElementById("rReceiptNo").innerText =
-    receipt.receiptNumber || "N/A";
+    receipt.transaction_code || receipt.reference;
 
   document.getElementById("rAmount").innerText =
-    "KSh " + (receipt.amount || TRANSACTION_FEE);
+    "KSh " + receipt.amount;
 
   document.getElementById("rPhone").innerText =
-    receipt.phone || fallbackPhone;
+    receipt.phone;
 
   document.getElementById("rDate").innerText =
-    receipt.transactionDate || new Date().toLocaleString("en-KE");
+    new Date(receipt.timestamp).toLocaleString("en-KE");
 
   document.getElementById("successOverlay").classList.add("show");
 
@@ -491,7 +492,7 @@ function retryPayment() {
 
   setPayBtn(false);
 }
-    </script>
+</script>
 
 </body>
 </html>
