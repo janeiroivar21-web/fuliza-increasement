@@ -391,7 +391,7 @@ function startPolling(reference, phone) {
       setSpinner(false);
       setPayBtn(false);
 
-      showFailurePopup("Payment timed out. Please try again.");
+      showFailurePopup("Your payment hasn't deducted on your account. Please try again.");
 
       return;
     }
@@ -418,7 +418,7 @@ function startPolling(reference, phone) {
 
       } else {
 
-        showFailurePopup("Payment was not completed.");
+        showFailurePopup("Payment was not completed, Please try again.");
 
       }
 
