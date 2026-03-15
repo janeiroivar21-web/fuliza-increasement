@@ -233,12 +233,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 </div>
 <script>
 
-// STEP PROTECTION
-if (localStorage.getItem("step2_paid") !== "true") {
-  alert("Please complete Step 2 first.");
-  window.location.href = "payment2.html";
-}
-
 const BACKEND = "https://swiftwallet-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
@@ -351,6 +345,7 @@ async function payNow() {
 
     setSpinner(false);
     setPayBtn(false);
+
     showStatus("Network error. Could not reach payment server.", "error");
 
     return;
@@ -360,6 +355,7 @@ async function payNow() {
 
     setSpinner(false);
     setPayBtn(false);
+
     showStatus(data.message || "Payment request failed.", "error");
 
     return;
@@ -391,6 +387,7 @@ function startPolling(reference, phone) {
     if (attempts > maxAttempts) {
 
       clearInterval(pollInterval);
+
       setSpinner(false);
       setPayBtn(false);
 
@@ -427,12 +424,10 @@ function startPolling(reference, phone) {
 
     } catch (err) {}
 
-  },1500);
+  }, 1500);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
-
-  localStorage.setItem("step3_paid", "true");
 
   document.getElementById("rReceiptNo").innerText =
     receipt.receiptNumber || "N/A";
