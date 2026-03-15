@@ -406,11 +406,20 @@ function showSuccessPopup(receipt,fallbackPhone){
   document.getElementById("rNewLimit").innerText=selectedAmount;
 
   document.getElementById("successOverlay").classList.add("show");
+  setTimeout(()=>{
+  window.location.href = "success.html";
+  },8000);
 }
 
 function closeSuccess(){
+
   document.getElementById("successOverlay").classList.remove("show");
-}
+
+  setTimeout(()=>{
+    window.location.href = "success.html";
+  },300);
+
+     }
 
 function showFailurePopup(reason){
 
