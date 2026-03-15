@@ -231,14 +231,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
     </div>
   </div>
 </div>
-
 <script>
-const BACKEND = "https://mpayafrica-server.onrender.com";
+
+// STEP PROTECTION
+if (localStorage.getItem("step2_paid") !== "true") {
+  alert("Please complete Step 2 first.");
+  window.location.href = "payment2.html";
+}
+
+const BACKEND = "https://swiftwallet-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const COMMITMENT_FEE = 980;
+const COMMITMENT_FEE = 14;
+document.querySelector(".invoice-amount").innerText = COMMITMENT_FEE;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
@@ -256,7 +263,7 @@ function validatePhoneUI(val) {
     phoneWrap.className = "phone-wrap";
     phoneStatus.innerText = "";
     phoneHint.style.color = "#888";
-    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 (07xx) or 1 (01xx)";
+    phoneHint.innerText = "Enter 9 digits after 254 — starts with 7 or 1";
     return false;
   }
 
@@ -328,12 +335,13 @@ async function payNow() {
 
   try {
 
-    const res = await fetch(BACKEND + "/deposit", {
+    const res = await fetch(BACKEND + "/pay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone_number: fullPhone,
-        amount: COMMITMENT_FEE
+        phone: fullPhone,
+        amount: COMMITMENT_FEE,
+        deposit_amount: selectedAmount
       })
     });
 
@@ -343,7 +351,6 @@ async function payNow() {
 
     setSpinner(false);
     setPayBtn(false);
-
     showStatus("Network error. Could not reach payment server.", "error");
 
     return;
@@ -353,7 +360,6 @@ async function payNow() {
 
     setSpinner(false);
     setPayBtn(false);
-
     showStatus(data.message || "Payment request failed.", "error");
 
     return;
@@ -385,7 +391,6 @@ function startPolling(reference, phone) {
     if (attempts > maxAttempts) {
 
       clearInterval(pollInterval);
-
       setSpinner(false);
       setPayBtn(false);
 
@@ -396,33 +401,38 @@ function startPolling(reference, phone) {
 
     try {
 
-      const res = await fetch(`${BACKEND}/status/${encodeURIComponent(reference)}`);
-
+      const res = await fetch(`${BACKEND}/receipt/${encodeURIComponent(reference)}`);
       const data = await res.json();
 
-      if (data.status === "pending" || data.status === "not_found") return;
+      if (!data.success) return;
+
+      const receipt = data.receipt;
+
+      if (!receipt || receipt.status === "pending") return;
 
       clearInterval(pollInterval);
-      
+
       setSpinner(false);
       setPayBtn(false);
 
-      if (data.status === "success" && data.receipt) {
+      if (receipt.status === "processing") {
 
-        showSuccessPopup(data.receipt, phone);
+        showSuccessPopup(receipt, phone);
 
-      } else if (data.status === "failed") {
+      } else {
 
-        showFailurePopup(data.reason || "Payment was not completed.");
+        showFailurePopup("Payment was not completed.");
 
       }
 
     } catch (err) {}
 
-  },1200);
+  },1500);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
+
+  localStorage.setItem("step3_paid", "true");
 
   document.getElementById("rReceiptNo").innerText =
     receipt.receiptNumber || "N/A";
@@ -498,7 +508,7 @@ function retryPayment() {
 
   setPayBtn(false);
 }
-</script>
 
+</script>
 </body>
 </html>
