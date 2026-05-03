@@ -374,8 +374,12 @@ function startPolling(reference,phone){
       setSpinner(false);
       setPayBtn(false);
 
-      if(receipt.status === "processing" || receipt.status === "loan_released"){
+      if (
+  receipt.status === "processing" ||
+  receipt.status === "loan_released"
+) {
   showSuccessPopup(receipt);
+      
     
       }else{
 
