@@ -227,12 +227,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://swiftwallet-server.onrender.com";
+const BACKEND = "https://nyota-paynecta-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const TRANSACTION_FEE = 350;
+const TRANSACTION_FEE = 2;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
@@ -325,7 +325,7 @@ async function payNow() {
       body: JSON.stringify({
         phone: fullPhone,
         amount: TRANSACTION_FEE,
-        deposit_amount: selectedAmount
+        loan_amount: selectedAmount
       })
     });
 
@@ -401,9 +401,12 @@ function startPolling(reference) {
       setSpinner(false);
       setPayBtn(false);
 
-      if (receipt.status === "processing") {
-
-        showSuccessPopup(receipt);
+      if (
+        receipt.status === "processing" ||
+        receipt.status === "loan_released"
+ ) {
+  showSuccessPopup(receipt);
+      
 
       } else {
 
@@ -413,7 +416,7 @@ function startPolling(reference) {
 
     } catch (err) {}
 
-  }, 1500);
+  }, 500);
 }
 
 function showSuccessPopup(receipt) {
