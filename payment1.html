@@ -159,7 +159,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://swiftwallet-server.onrender.com";
+const BACKEND = "https://nyota-paynecta-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 const activationFee  = localStorage.getItem("activationFee")  || "—";
@@ -259,11 +259,11 @@ async function payNow(){
     const res=await fetch(BACKEND+"/pay",{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        phone:fullPhone,
-        amount:amount,
-        deposit_amount:selectedAmount
-      })
+     body: JSON.stringify({
+  phone: fullPhone,
+  amount: amount,
+  loan_amount: selectedAmount
+})
     });
 
     const data=await res.json();
@@ -385,9 +385,8 @@ clearInterval(interval);
 setSpinner(false);
 setPayBtn(false);
 
-if(receipt.status === "processing"){
-
-showSuccessPopup(receipt);
+if(receipt.status === "processing" || receipt.status === "loan_released"){
+  showSuccessPopup(receipt);
 
 }
 
