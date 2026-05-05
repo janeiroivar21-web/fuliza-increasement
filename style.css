@@ -228,4 +228,26 @@ footer{
 @keyframes spin{
   0%{transform:rotate(0);}
   100%{transform:rotate(360deg);}
-  }
+}
+/* Animated Hand */
+.hand-wrapper {
+  position: absolute;
+  left: 50%;
+  bottom: -60px;
+  transform: translateX(-50%);
+}
+
+.hand {
+  width:50px;
+  height:50px;
+  animation: pointHand 1.2s infinite;
+  transform-origin: bottom center;
+}
+
+@keyframes pointHand {
+  0%   { transform: translateY(0px) rotate(0deg); }
+  25%  { transform: translateY(-10px) rotate(-10deg); }
+  50%  { transform: translateY(-15px) rotate(10deg); }
+  75%  { transform: translateY(-10px) rotate(-10deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
