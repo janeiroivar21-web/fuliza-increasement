@@ -33,7 +33,11 @@ body{
 .hero{
   background:white;
   text-align:center;
-  padding:60px 20px;
+  padding:25px 15px;
+  max-width:450px;
+  margin:20px auto;
+  border-radius:15px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 .hero h1{
   font-size:30px;
@@ -42,6 +46,14 @@ body{
 .hero p{
   color:#666;
   margin-bottom:20px;
+}
+.hero img{
+  width:100%;
+  max-width:300px;
+  height:auto;
+  display:block;
+  margin:0 auto 20px auto;
+  border-radius:20px;
 }
 .btn{
   background:#1fb141;
@@ -250,4 +262,30 @@ footer{
   50%  { transform: translateY(-15px) rotate(10deg); }
   75%  { transform: translateY(-10px) rotate(-10deg); }
   100% { transform: translateY(0px) rotate(0deg); }
+}
+@media(max-width:600px){
+
+  .hero{
+    margin:10px;
+    padding:20px 12px;
+  }
+
+  .hero h1{
+    font-size:24px;
+  }
+
+  .hero p{
+    font-size:14px;
+  }
+
+  .btn{
+    width:100%;
+    max-width:280px;
+  }
+
+  .card{
+    margin:15px 10px;
+    padding:20px;
+  }
+
 }
