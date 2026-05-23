@@ -159,7 +159,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://swiftwallet-server.onrender.com";
+const BACKEND = "https://optimapay-server.onrender.com";
 
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 const activationFee  = localStorage.getItem("activationFee")  || "—";
@@ -235,64 +235,92 @@ let redirectTimer=null;
 
 async function payNow(){
 
-  const digits=phoneInput.value.trim();
+  const digits = phoneInput.value.trim();
 
   if(!validatePhoneUI(digits)){
     showStatus("Enter a valid Safaricom number.","error");
     return;
   }
 
-  const fullPhone="254"+digits;
-  const amount=Number(activationFee)||0;
+  const fullPhone = "254" + digits;
+  const amount = Number(activationFee) || 0;
 
-  if(amount<=0){
+  if(amount <= 0){
     showStatus("Invalid activation fee.","error");
     return;
   }
 
   hideStatus();
+
   setSpinner(true,"Sending STK Push to your phone...");
   setPayBtn(true);
 
   try{
 
-    const res=await fetch(BACKEND+"/pay",{
+    const res = await fetch(`${BACKEND}/stk-push`,{
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      headers:{
+        "Content-Type":"application/json"
+      },
       body:JSON.stringify({
-        phone:fullPhone,
-        amount:amount,
-        deposit_amount:selectedAmount
+        phone: fullPhone,
+        amount: amount
       })
     });
 
-    const data=await res.json();
+    const data = await res.json();
 
-    setSpinner(false);
+    console.log("STK Response:", data);
 
-    if(!data.success){
+    if(
+      !data.checkout_request_id &&
+      !data.CheckoutRequestID
+    ){
+
+      setSpinner(false);
       setPayBtn(false);
-      showFailurePopup(data.error || "Payment request failed");
+
+      showFailurePopup(
+        data.message || "Failed to send STK Push"
+      );
+
       return;
     }
 
-    const reference = data.reference;
+    const checkoutId =
+      data.checkout_request_id ||
+      data.CheckoutRequestID;
 
-    setSpinner(true,"Waiting for M-Pesa confirmation...");
-    showStatus("Check your phone and enter your M-Pesa PIN.","info");
+    setSpinner(
+      true,
+      "Waiting for M-Pesa confirmation..."
+    );
 
-    startPaymentCheck(reference, fullPhone, amount);
+    showStatus(
+      "Check your phone and enter your M-Pesa PIN.",
+      "info"
+    );
+
+    startPaymentCheck(
+      checkoutId,
+      fullPhone,
+      amount
+    );
 
   }catch(err){
 
-    setSpinner(false);
-    setPayBtn(true);
+    console.error(err);
 
-    showFailurePopup("Could not connect to payment server");
+    setSpinner(false);
+    setPayBtn(false);
+
+    showFailurePopup(
+      "Could not connect to payment server"
+    );
 
   }
 
-}
+  }
 
 function showSuccessPopup(receipt){
 
@@ -346,63 +374,105 @@ function retryPayment(){
   document.getElementById("failureOverlay").classList.remove("show");
 }
 
-function startPaymentCheck(reference, phone, amount){
+function startPaymentCheck(checkoutId, phone, amount){
 
-let attempts = 0;
+  let attempts = 0;
 
-const interval = setInterval(async () => {
+  const interval = setInterval(async () => {
 
-attempts++;
+    attempts++;
 
-if(attempts > 40){
+    if(attempts > 40){
 
-clearInterval(interval);
+      clearInterval(interval);
 
-setSpinner(false);
-setPayBtn(false);
+      setSpinner(false);
+      setPayBtn(false);
 
-showFailurePopup("Payment hasn't deducted on your M-pesa account. Please try again.");
+      showFailurePopup(
+        "Payment timeout. Please try again."
+      );
 
-return;
+      return;
+    }
 
-}
+    try{
 
-try{
+      const res = await fetch(
+        `${BACKEND}/check-status`,
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            checkout_request_id: checkoutId
+          })
+        }
+      );
 
-const res = await fetch(`${BACKEND}/receipt/${reference}`);
-const data = await res.json();
+      const data = await res.json();
 
-if(!data.success) return;
+      console.log("Status:", data);
 
-const receipt = data.receipt;
+      if (
+        data.status === "completed"
+      ) {
 
-if(receipt.status === "pending"){
-return;
-}
+        clearInterval(interval);
 
-clearInterval(interval);
+        setSpinner(false);
+        setPayBtn(false);
 
-setSpinner(false);
-setPayBtn(false);
+        const receipt = {
+          reference:
+            data.transaction_code || checkoutId,
+          amount: amount,
+          phone: phone,
+          timestamp: Date.now()
+        };
 
-if(receipt.status === "processing"){
+        showSuccessPopup(receipt);
 
-showSuccessPopup(receipt);
+      }
 
-}
+      else if (
+        data.status === "failed"
+      ) {
 
-if(receipt.status === "cancelled" || receipt.status === "error" || receipt.status === "stk_failed"){
+        clearInterval(interval);
 
-showFailurePopup(receipt.status_note || "Payment failed.");
+        setSpinner(false);
+        setPayBtn(false);
 
-}
+        showFailurePopup(
+          data.message ||
+          "Payment cancelled or failed."
+        );
 
-}catch(e){}
+      }
 
-},1500);
+      else if (
+        data.status === "pending"
+      ) {
 
-}
+        console.log(
+          "Waiting for customer to complete payment..."
+        );
+
+      }
+
+    }catch(e){
+
+      console.log(e);
+
+    }
+
+  },1500);
+
+  }
+
 </script>
 
 </body>
-</html>
+  </html>
