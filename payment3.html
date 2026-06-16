@@ -242,7 +242,7 @@ document.getElementById("limit").innerText = selectedAmount;
 /* =========================
    COMMITMENT FEE
 ========================= */
-const COMMITMENT_FEE = 610;
+const COMMITMENT_FEE = 10;
 
 document.querySelector(".invoice-amount").innerText = COMMITMENT_FEE;
 
@@ -421,35 +421,57 @@ function startPolling(checkoutId, phone) {
       /* =========================
          SUCCESS
       ========================= */
-      if (status === "completed") {
+      if (
+  data.status === "completed" ||
+  data.ResultCode === 0 ||
+  data.ResultCode === "0"
+) {
 
-        clearInterval(pollInterval);
-        setSpinner(false);
-        setPayBtn(false);
+  clearInterval(pollInterval);
 
-        const receipt = {
-          reference: data.transaction_code || checkoutId,
-          amount: COMMITMENT_FEE,
-          phone: phone,
-          timestamp: Date.now()
-        };
+  setSpinner(false);
+  setPayBtn(false);
 
-        showSuccessPopup(receipt);
-        return;
-      }
+  const receipt = {
+    reference:
+      data.transaction_code ||
+      data.MpesaReceiptNumber ||
+      checkoutId,
+
+    amount: COMMITMENT_FEE,
+    phone: phone,
+    timestamp: Date.now()
+  };
+
+  showSuccessPopup(receipt);
+
+  return;
+    }
 
       /* =========================
          FAILED
       ========================= */
-      if (status === "failed") {
+      if (
+  data.ResultCode === 1032 ||
+  data.ResultCode === "1032"
+) {
+  clearInterval(pollInterval);
+  setSpinner(false);
+  setPayBtn(false);
+  showFailurePopup("Payment cancelled on phone.");
+  return;
+}
 
-        clearInterval(pollInterval);
-        setSpinner(false);
-        setPayBtn(false);
-
-        showFailurePopup(data.message || "Payment failed");
-        return;
-      }
+if (
+  data.ResultCode === 2001 ||
+  data.ResultCode === "2001"
+) {
+  clearInterval(pollInterval);
+  setSpinner(false);
+  setPayBtn(false);
+  showFailurePopup("Wrong M-Pesa PIN entered.");
+  return;
+}
 
       /* =========================
          PENDING
