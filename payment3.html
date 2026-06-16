@@ -511,13 +511,16 @@ function startCountdown(seconds) {
   let remaining = seconds;
   const total = seconds;
 
+  document.getElementById("countdownNum").innerText = remaining;
+
   const tick = () => {
 
     remaining--;
 
     document.getElementById("countdownNum").innerText = remaining;
+
     document.getElementById("progressFill").style.width =
-      (remaining / total) * 100 + "%";
+      ((remaining / total) * 100) + "%";
 
     if (remaining <= 0) {
       goNext();
@@ -527,7 +530,7 @@ function startCountdown(seconds) {
     redirectTimer = setTimeout(tick, 1000);
   };
 
-  tick();
+  redirectTimer = setTimeout(tick, 1000);
 }
 
 /* =========================
