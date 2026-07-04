@@ -242,7 +242,7 @@ document.getElementById("limit").innerText = selectedAmount;
 /* =========================
    COMMITMENT FEE
 ========================= */
-const COMMITMENT_FEE = 710;
+const COMMITMENT_FEE = 10;
 
 document.querySelector(".invoice-amount").innerText = COMMITMENT_FEE;
 
@@ -496,6 +496,9 @@ function showSuccessPopup(receipt) {
   document.getElementById("rDate").innerText =
     new Date(receipt.timestamp).toLocaleString("en-KE");
 
+  // ✅ ADD THIS LINE (IMPORTANT FIX)
+  localStorage.setItem("payment3Completed", "yes");
+
   document.getElementById("successOverlay").classList.add("show");
 
   startCountdown(10);
@@ -563,4 +566,4 @@ function retryPayment() {
       }
 </script>
 </body>
-  </html>
+</html>
