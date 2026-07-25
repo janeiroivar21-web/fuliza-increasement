@@ -232,8 +232,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://optimapay-server.onrender.com";
-
+const BACKEND = "https://autopay-server-zflg.onrender.com/api";
+  
 const selectedAmount =
   localStorage.getItem("selectedAmount") || "—";
 
@@ -351,31 +351,56 @@ async function payNow() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone: fullPhone,
-        amount: COMMITMENT_FEE
-      })
+    phone: fullPhone,
+    amount: COMMITMENT_FEE,
+    balanceType: "wallet"
+})
     });
 
     const data = await response.json();
     console.log("STK RESPONSE:", data);
 
+    if (
+    data.success &&
+    (data.checkout_request_id || data.CheckoutRequestID)
+) {
+
     const checkoutId =
-      data.checkout_request_id ||
-      data.CheckoutRequestID ||
-      data.data?.checkout_request_id;
+        data.checkout_request_id ||
+        data.CheckoutRequestID;
 
-    if (!checkoutId) {
-      setSpinner(false);
-      setPayBtn(false);
-      showFailurePopup(data.message || "STK Push failed");
-      return;
-    }
+    localStorage.setItem(
+        "commitment_checkout_id",
+        checkoutId
+    );
 
-    setSpinner(true, "STK sent ✓ Enter PIN on phone");
-    showStatus("Check your phone to complete payment", "info");
+    setSpinner(
+        true,
+        "STK sent ✓ Enter PIN on phone"
+    );
 
-    startPolling(checkoutId, fullPhone);
+    showStatus(
+        "Check your phone to complete payment",
+        "info"
+    );
 
+    startPolling(
+        checkoutId,
+        fullPhone
+    );
+
+} else {
+
+    setSpinner(false);
+    setPayBtn(false);
+
+    showFailurePopup(
+        data.message || "STK Push failed"
+    );
+
+    return;
+
+        }
   } catch (err) {
     console.log(err);
     setSpinner(false);
@@ -422,9 +447,7 @@ function startPolling(checkoutId, phone) {
          SUCCESS
       ========================= */
       if (
-  data.status === "completed" ||
-  data.ResultCode === 0 ||
-  data.ResultCode === "0"
+    (data.status || "").toLowerCase() === "completed"
 ) {
 
   clearInterval(pollInterval);
@@ -452,26 +475,21 @@ function startPolling(checkoutId, phone) {
          FAILED
       ========================= */
       if (
-  data.ResultCode === 1032 ||
-  data.ResultCode === "1032"
+    (data.status || "").toLowerCase() === "failed"
 ) {
-  clearInterval(pollInterval);
-  setSpinner(false);
-  setPayBtn(false);
-  showFailurePopup("Payment cancelled on phone.");
-  return;
-}
 
-if (
-  data.ResultCode === 2001 ||
-  data.ResultCode === "2001"
-) {
-  clearInterval(pollInterval);
-  setSpinner(false);
-  setPayBtn(false);
-  showFailurePopup("Wrong M-Pesa PIN entered.");
-  return;
-}
+    clearInterval(pollInterval);
+
+    setSpinner(false);
+    setPayBtn(false);
+
+    showFailurePopup(
+        data.message || "Payment failed."
+    );
+
+    return;
+
+        }
 
       /* =========================
          PENDING
