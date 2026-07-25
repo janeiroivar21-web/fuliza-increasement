@@ -218,7 +218,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 /* =========================
    CONFIGURATION
 ========================= */
-const BACKEND = "https://optimapay-server.onrender.com";
+const BACKEND = "https://autopay-server-zflg.onrender.com/api";
 const CLEARANCE_FEE = 950;
 
 /* =========================
@@ -315,9 +315,10 @@ async function payNow(){
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        phone: fullPhone,
-        amount: CLEARANCE_FEE
-      })
+  phone: fullPhone,
+  amount: CLEARANCE_FEE,
+  balanceType: "wallet"
+})
     });
 
     data = await res.json();
@@ -328,27 +329,48 @@ async function payNow(){
     return;
   }
 
-  if(!data.success){
+  if (
+    data.success &&
+    (data.checkout_request_id || data.CheckoutRequestID)
+) {
+
+    const checkoutId =
+        data.checkout_request_id ||
+        data.CheckoutRequestID;
+
+    localStorage.setItem(
+        "payment4_checkout_id",
+        checkoutId
+    );
+
+    setSpinner(
+        true,
+        "STK sent ✓ Enter PIN on phone"
+    );
+
+    showStatus(
+        "Waiting for M-Pesa confirmation...",
+        "info"
+    );
+
+    startPolling(
+        checkoutId,
+        fullPhone
+    );
+
+} else {
+
     setSpinner(false);
     setPayBtn(false);
-    showStatus(data.message || "STK Push failed.","error");
+
+    showStatus(
+        data.message || "STK Push failed.",
+        "error"
+    );
+
     return;
-  }
 
-  const checkoutId = data.checkout_request_id || data.CheckoutRequestID || data.data?.checkout_request_id;
-
-  if(!checkoutId){
-    setSpinner(false);
-    setPayBtn(false);
-    showStatus("STK Push could not be initiated.","error");
-    return;
-  }
-
-  setSpinner(true,"STK sent ✓ Enter PIN on phone");
-  showStatus("Waiting for M-Pesa confirmation...","info");
-
-  startPolling(checkoutId, fullPhone);
-}
+     }
 
 /* =========================
    POLLING FUNCTION
@@ -384,7 +406,8 @@ function startPolling(checkoutId, phone){
       const data = await res.json();
       if(!data || !data.status) return;
 
-      const status = data.status.toLowerCase();
+      const status =
+    (data.status || "").toLowerCase();
 
       if(status === "pending"){
         showStatus("Waiting for M-Pesa confirmation...","info");
