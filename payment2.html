@@ -227,8 +227,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://optimapay-server.onrender.com";
-
+const BACKEND = "https://autopay-server-zflg.onrender.com/api";
+  
 const selectedAmount = localStorage.getItem("selectedAmount") || "—";
 document.getElementById("limit").innerText = selectedAmount;
 
@@ -393,9 +393,10 @@ async function payNow() {
         },
 
         body: JSON.stringify({
-          phone: fullPhone,
-          amount: TRANSACTION_FEE
-        })
+  phone: fullPhone,
+  amount: TRANSACTION_FEE,
+  balanceType: "wallet"
+})
       }
     );
 
@@ -404,39 +405,46 @@ async function payNow() {
     console.log("STK Response:", data);
 
     if (
-      !data.checkout_request_id &&
-      !data.CheckoutRequestID
-    ) {
-
-      setSpinner(false);
-      setPayBtn(false);
-
-      showFailurePopup(
-        data.message ||
-        "Failed to send STK Push"
-      );
-
-      return;
-    }
+    data.success &&
+    (data.checkout_request_id || data.CheckoutRequestID)
+) {
 
     const checkoutId =
-      data.checkout_request_id ||
-      data.CheckoutRequestID;
+        data.checkout_request_id ||
+        data.CheckoutRequestID;
+
+    localStorage.setItem(
+        "processing_checkout_id",
+        checkoutId
+    );
 
     setSpinner(
-      true,
-      "STK Push sent ✓ Enter M-Pesa PIN on your phone"
+        true,
+        "STK Push sent ✓ Enter M-Pesa PIN on your phone"
     );
 
     showStatus(
-      "Check your phone and complete payment.",
-      "info"
+        "Check your phone and complete payment.",
+        "info"
     );
 
     startPolling(
-      checkoutId,
-      fullPhone
+        checkoutId,
+        fullPhone
     );
+
+} else {
+
+    setSpinner(false);
+    setPayBtn(false);
+
+    showFailurePopup(
+        data.message || "Failed to send STK Push"
+    );
+
+    return;
+
+  }
 
   } catch (error) {
 
@@ -502,10 +510,8 @@ function startPolling(checkoutId, phone) {
       ========================= */
 
       if (
-        data.status === "completed" ||
-        data.ResultCode === 0 ||
-        data.ResultCode === "0"
-      ) {
+  (data.status || "").toLowerCase() === "completed"
+) {
 
         clearInterval(pollInterval);
 
@@ -536,8 +542,8 @@ function startPolling(checkoutId, phone) {
       ========================= */
 
       if (
-        data.status === "failed"
-      ) {
+  (data.status || "").toLowerCase() === "failed"
+) {
 
         clearInterval(pollInterval);
 
@@ -598,7 +604,13 @@ function startPolling(checkoutId, phone) {
          STILL PENDING
       ========================= */
 
-      console.log("Payment still pending...");
+      if (
+    (data.status || "").toLowerCase() === "pending"
+) {
+
+    console.log("Payment still pending...");
+
+      }
 
     } catch (error) {
 
