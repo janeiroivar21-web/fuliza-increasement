@@ -275,12 +275,11 @@ async function payNow(){
 
     if (
     data.success &&
-    (data.checkout_request_id || data.CheckoutRequestID)
+    data.data &&
+    data.data.checkout_request_id
 ) {
 
-    const checkoutId =
-        data.checkout_request_id ||
-        data.CheckoutRequestID;
+    const checkoutId = data.data.checkout_request_id;
 
     localStorage.setItem(
         "payment1_checkout_id",
@@ -424,9 +423,13 @@ function startPaymentCheck(checkoutId, phone, amount){
 
       console.log("Status:", data);
 
-      if (
-  (data.status || "").toLowerCase() === "completed"
-) {
+      const status = (
+    data.status ||
+    data.data?.transaction?.status ||
+    ""
+).toLowerCase();
+
+if (status === "completed") {
 
         clearInterval(interval);
 
@@ -445,9 +448,7 @@ function startPaymentCheck(checkoutId, phone, amount){
 
       }
 
-      else if (
-  (data.status || "").toLowerCase() === "failed"
-) {
+      else if (status === "failed") {
 
         clearInterval(interval);
 
@@ -461,9 +462,7 @@ function startPaymentCheck(checkoutId, phone, amount){
 
       }
 
-      else if (
-  (data.status || "").toLowerCase() === "pending"
-) {
+      else if (status === "pending") {
 
         console.log(
           "Waiting for customer to complete payment..."
