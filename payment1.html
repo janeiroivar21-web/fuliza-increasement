@@ -438,7 +438,9 @@ if (status === "completed") {
 
         const receipt = {
           reference:
-            data.transaction_code || checkoutId,
+    data.data?.transaction?.transaction_id ||
+    data.transaction_id ||
+    checkoutId,
           amount: amount,
           phone: phone,
           timestamp: Date.now()
