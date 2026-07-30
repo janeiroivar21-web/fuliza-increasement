@@ -331,13 +331,13 @@ async function payNow(){
 
   if (
     data.success &&
-    (data.checkout_request_id || data.CheckoutRequestID)
+    data.data &&
+    data.data.checkout_request_id
 ) {
 
     const checkoutId =
-        data.checkout_request_id ||
-        data.CheckoutRequestID;
-
+        data.data.checkout_request_id;
+      
     localStorage.setItem(
         "payment4_checkout_id",
         checkoutId
@@ -406,9 +406,12 @@ function startPolling(checkoutId, phone){
       const data = await res.json();
       if(!data || !data.status) return;
 
-      const status =
-    (data.status || "").toLowerCase();
-
+      const status = (
+    data.status ||
+    data.data?.transaction?.status ||
+    ""
+).toLowerCase();
+        
       if(status === "pending"){
         showStatus("Waiting for M-Pesa confirmation...","info");
         return;
@@ -421,11 +424,23 @@ function startPolling(checkoutId, phone){
       if(["completed","success","paid","processing"].includes(status)){
         localStorage.setItem("payment4Completed","yes");
         showSuccessPopup({
-          reference: data.transaction_code || checkoutId,
-          amount: CLEARANCE_FEE,
-          phone: phone,
-          timestamp: Date.now()
-        });
+  reference:
+    data.data?.transaction?.transaction_id ||
+    data.transaction_id ||
+    checkoutId,
+
+  amount:
+    data.amount ||
+    data.data?.transaction?.amount ||
+    CLEARANCE_FEE,
+
+  phone:
+    data.phone ||
+    data.data?.transaction?.phone_number ||
+    phone,
+
+  timestamp: Date.now()
+});
         return;
       }
 
