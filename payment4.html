@@ -404,8 +404,14 @@ function startPolling(checkoutId, phone){
       if(!res.ok) return;
 
       const data = await res.json();
-      if(!data || !data.status) return;
 
+if (
+    !data ||
+    (!data.status && !data.data?.transaction?.status)
+) {
+    return;
+     }
+        
       const status = (
     data.status ||
     data.data?.transaction?.status ||
