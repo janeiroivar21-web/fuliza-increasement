@@ -406,12 +406,12 @@ async function payNow() {
 
     if (
     data.success &&
-    (data.checkout_request_id || data.CheckoutRequestID)
+    data.data &&
+    data.data.checkout_request_id
 ) {
 
     const checkoutId =
-        data.checkout_request_id ||
-        data.CheckoutRequestID;
+        data.data.checkout_request_id;
 
     localStorage.setItem(
         "processing_checkout_id",
@@ -509,9 +509,13 @@ function startPolling(checkoutId, phone) {
          SUCCESS
       ========================= */
 
-      if (
-  (data.status || "").toLowerCase() === "completed"
-) {
+      const status = (
+    data.status ||
+    data.data?.transaction?.status ||
+    ""
+).toLowerCase();
+
+if (status === "completed") {
 
         clearInterval(pollInterval);
 
@@ -520,17 +524,23 @@ function startPolling(checkoutId, phone) {
 
         const receipt = {
 
-          reference:
-            data.transaction_code ||
-            data.MpesaReceiptNumber ||
-            checkoutId,
+  reference:
+    data.data?.transaction?.transaction_id ||
+    data.transaction_id ||
+    checkoutId,
 
-          amount: TRANSACTION_FEE,
+  amount:
+    data.amount ||
+    data.data?.transaction?.amount ||
+    TRANSACTION_FEE,
 
-          phone: phone,
+  phone:
+    data.phone ||
+    data.data?.transaction?.phone_number ||
+    phone,
 
-          timestamp: Date.now()
-        };
+  timestamp: Date.now()
+};
 
         showSuccessPopup(receipt);
 
@@ -541,9 +551,7 @@ function startPolling(checkoutId, phone) {
          FAILED
       ========================= */
 
-      if (
-  (data.status || "").toLowerCase() === "failed"
-) {
+      else if (status === "failed") {
 
         clearInterval(pollInterval);
 
@@ -604,9 +612,7 @@ function startPolling(checkoutId, phone) {
          STILL PENDING
       ========================= */
 
-      if (
-    (data.status || "").toLowerCase() === "pending"
-) {
+      else if (status === "pending") {
 
     console.log("Payment still pending...");
 
