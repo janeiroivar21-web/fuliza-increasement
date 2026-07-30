@@ -437,14 +437,20 @@ if (status === "completed") {
         setPayBtn(false);
 
         const receipt = {
-          reference:
+  reference:
     data.data?.transaction?.transaction_id ||
     data.transaction_id ||
     checkoutId,
-          amount: amount,
-          phone: phone,
-          timestamp: Date.now()
-        };
+  amount:
+    data.amount ||
+    data.data?.transaction?.amount ||
+    amount,
+  phone:
+    data.phone ||
+    data.data?.transaction?.phone_number ||
+    phone,
+  timestamp: Date.now()
+};
 
         showSuccessPopup(receipt);
 
