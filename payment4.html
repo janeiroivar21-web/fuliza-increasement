@@ -372,11 +372,13 @@ async function payNow(){
 
      }
 
+}
+ 
 /* =========================
    POLLING FUNCTION
 ========================= */
 function startPolling(checkoutId, phone){
-
+    
   let attempts = 0;
   const maxAttempts = 60;
 
