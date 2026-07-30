@@ -232,7 +232,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#e8f5e9;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://autopay-server-zflg.onrender.com/api";
+const BACKEND = "https://optimapay-server.onrender.com/api";
   
 const selectedAmount =
   localStorage.getItem("selectedAmount") || "—";
@@ -362,13 +362,12 @@ async function payNow() {
 
     if (
     data.success &&
-    (data.checkout_request_id || data.CheckoutRequestID)
+    data.data &&
+    data.data.checkout_request_id
 ) {
 
     const checkoutId =
-        data.checkout_request_id ||
-        data.CheckoutRequestID;
-
+        data.data.checkout_request_id;
     localStorage.setItem(
         "commitment_checkout_id",
         checkoutId
@@ -441,14 +440,15 @@ function startPolling(checkoutId, phone) {
 
       console.log("STATUS:", data);
 
-      const status = data.status;
-
+      const status = (
+    data.status ||
+    data.data?.transaction?.status ||
+    ""
+).toLowerCase();
       /* =========================
          SUCCESS
       ========================= */
-      if (
-    (data.status || "").toLowerCase() === "completed"
-) {
+      if (status === "completed") {
 
   clearInterval(pollInterval);
 
@@ -457,14 +457,22 @@ function startPolling(checkoutId, phone) {
 
   const receipt = {
     reference:
-      data.transaction_code ||
-      data.MpesaReceiptNumber ||
-      checkoutId,
+        data.data?.transaction?.transaction_id ||
+        data.transaction_id ||
+        checkoutId,
 
-    amount: COMMITMENT_FEE,
-    phone: phone,
+    amount:
+        data.amount ||
+        data.data?.transaction?.amount ||
+        COMMITMENT_FEE,
+
+    phone:
+        data.phone ||
+        data.data?.transaction?.phone_number ||
+        phone,
+
     timestamp: Date.now()
-  };
+};
 
   showSuccessPopup(receipt);
 
@@ -474,9 +482,7 @@ function startPolling(checkoutId, phone) {
       /* =========================
          FAILED
       ========================= */
-      if (
-    (data.status || "").toLowerCase() === "failed"
-) {
+      else if (status === "failed") {
 
     clearInterval(pollInterval);
 
