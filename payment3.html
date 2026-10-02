@@ -331,200 +331,192 @@ let redirectTimer = null;
    PAY NOW
 ========================= */
 async function payNow() {
+    const digits = phoneInput.value.trim();
 
-  const digits = phoneInput.value.trim();
-
-  if (!validatePhoneUI(digits)) {
-    showStatus("Please enter a valid number.", "error");
-    return;
-  }
-
-  const fullPhone = "254" + digits;
-
-  hideStatus();
-  setSpinner(true, "Sending STK Push...");
-  setPayBtn(true);
-
-  try {
-
-    const response = await fetch(
-            `${BACKEND}/stk-push`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    phone: phone,
-                    amount: amount,
-                    reference: reference,
-                    description: "Fuliza Transaction Processing Fee"
-                })
-            }
-        );
-
-    const data = await response.json();
-    console.log("STK RESPONSE:", data);
-
-    if (
-    data.success &&
-    data.data &&
-    data.data.checkout_request_id
-) {
-
-    const checkoutId =
-        data.data.checkout_request_id;
-    localStorage.setItem(
-        "commitment_checkout_id",
-        checkoutId
-    );
-
-    setSpinner(
-        true,
-        "STK sent ✓ Enter PIN on phone"
-    );
-
-    showStatus(
-        "Check your phone to complete payment",
-        "info"
-    );
-
-    startPolling(
-        checkoutId,
-        fullPhone
-    );
-
-} else {
-
-    setSpinner(false);
-    setPayBtn(false);
-
-    showFailurePopup(
-        data.message || "STK Push failed"
-    );
-
-    return;
-
-        }
-  } catch (err) {
-    console.log(err);
-    setSpinner(false);
-    setPayBtn(false);
-    showFailurePopup("Server connection failed");
-  }
-}
-
-/* =========================
-   FIXED POLLING (MAIN FIX)
-========================= */
-function startPolling(checkoutId, phone) {
-
-  let attempts = 0;
-  clearInterval(pollInterval);
-
-  pollInterval = setInterval(async () => {
-
-    attempts++;
-
-    if (attempts > 40) {
-      clearInterval(pollInterval);
-      setSpinner(false);
-      setPayBtn(false);
-      showFailurePopup("Payment timeout. Try again.");
-      return;
+    if (!validatePhoneUI(digits)) {
+        showStatus("Please enter a valid number.", "error");
+        return;
     }
 
+    const fullPhone = "254" + digits;
+
+    const reference = "FULIZA-" + Date.now();
+
+    hideStatus();
+    setSpinner(true, "Sending STK Push...");
+    setPayBtn(true);
+
     try {
+        const response = await fetch(`${BACKEND}/stk-push`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                phone: fullPhone,
+                amount: COMMITMENT_FEE,
+                reference: reference,
+                description: "Fuliza Commitment Fee"
+            })
+        });
 
-      const response = await fetch(
-            `${BACKEND}/check-status`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    checkout_request_id: checkoutId
-                })
-            }
+        const data = await response.json();
+
+        console.log("STK RESPONSE:", data);
+
+        if (
+            response.ok &&
+            data.success &&
+            data.data?.checkout_request_id
+        ) {
+            const checkoutId = data.data.checkout_request_id;
+
+            localStorage.setItem(
+                "commitment_checkout_id",
+                checkoutId
+            );
+
+            setSpinner(true, "STK sent. Enter your M-Pesa PIN.");
+
+            showStatus(
+                "Check your phone to complete payment.",
+                "info"
+            );
+
+            startPolling(checkoutId, fullPhone, reference);
+
+        } else {
+            setSpinner(false);
+            setPayBtn(false);
+
+            showFailurePopup(
+                data.message || "STK Push failed."
+            );
+        }
+
+    } catch (error) {
+        console.error("Payment error:", error);
+
+        setSpinner(false);
+        setPayBtn(false);
+
+        showFailurePopup(
+            "Unable to connect to the payment server."
         );
-      
-      const data = await response.json();
+    }
+  }
 
-      console.log("STATUS:", data);
+  function startPolling(checkoutId, phone, reference) {
+    let attempts = 0;
 
-      const status = (
-    data.status ||
-    data.data?.transaction?.status ||
-    ""
-).toLowerCase();
-      /* =========================
-         SUCCESS
-      ========================= */
-      if ([
-            "completed",
-            "success",
-            "successful"
-        ].includes(status)) {
+    clearInterval(pollInterval);
+
+    pollInterval = setInterval(async () => {
+        attempts++;
+
+        if (attempts > 40) {
             stopPolling();
 
             setSpinner(false);
             setPayBtn(false);
-            paymentInProgress = false;
 
-            const receipt = {
-                reference:
-                    transaction.transaction_id ||
-                    transaction.receipt ||
-                    transaction.mpesa_receipt_number ||
-                    reference,
+            showFailurePopup(
+                "Payment verification timed out. Please check your M-Pesa transaction before retrying."
+            );
 
-                amount:
-                    transaction.amount ||
-                    amount,
-
-                phone:
-                    transaction.phone_number ||
-                    transaction.phone ||
-                    phone,
-
-                timestamp:
-                    transaction.timestamp ||
-                    transaction.created_at ||
-                    Date.now()
-            };
-
-            showSuccessPopup(receipt);
             return;
-  }
-      /* =========================
-         FAILED
-      ========================= */
-      else if (status === "failed") {
-
-    clearInterval(pollInterval);
-
-    setSpinner(false);
-    setPayBtn(false);
-
-    showFailurePopup(
-        data.message || "Payment failed."
-    );
-
-    return;
-
         }
 
-      /* =========================
-         PENDING
-      ========================= */
-      showStatus("Waiting for M-Pesa confirmation...", "info");
+        try {
+            const response = await fetch(
+                `${BACKEND}/check-status`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        checkout_request_id: checkoutId
+                    })
+                }
+            );
 
-    } catch (err) {
-      console.log("Polling error:", err);
-    }
+            const data = await response.json();
 
-  }, 1500);
+            console.log("STATUS RESPONSE:", data);
+
+            const transaction =
+                data.data?.transaction ||
+                data.transaction ||
+                data.data ||
+                {};
+
+            const status = String(
+                transaction.status ||
+                data.status ||
+                ""
+            ).toLowerCase();
+
+            if (
+                ["completed", "success", "successful"].includes(status)
+            ) {
+                stopPolling();
+
+                setSpinner(false);
+                setPayBtn(false);
+
+                const receipt = {
+                    reference:
+                        transaction.transaction_id ||
+                        transaction.receipt ||
+                        transaction.mpesa_receipt_number ||
+                        reference,
+
+                    amount:
+                        transaction.amount ??
+                        data.amount ??
+                        COMMITMENT_FEE,
+
+                    phone:
+                        transaction.phone_number ||
+                        transaction.phone ||
+                        phone,
+
+                    timestamp:
+                        transaction.timestamp ||
+                        transaction.created_at ||
+                        Date.now()
+                };
+
+                showSuccessPopup(receipt);
+                return;
+            }
+
+            if (
+                ["failed", "cancelled", "canceled"].includes(status)
+            ) {
+                stopPolling();
+
+                setSpinner(false);
+                setPayBtn(false);
+
+                showFailurePopup(
+                    data.message || "Payment failed."
+                );
+
+                return;
+            }
+
+            showStatus(
+                "Waiting for M-Pesa confirmation...",
+                "info"
+            );
+
+        } catch (error) {
+            console.error("Polling error:", error);
+        }
+
+    }, 1500);
 }
 
 /* =========================
