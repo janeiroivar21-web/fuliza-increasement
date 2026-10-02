@@ -227,519 +227,564 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;min-height:100vh
   </div>
 </div>
 <script>
-const BACKEND = "https://optimapay-server.onrender.com/api";
-  
-const selectedAmount = localStorage.getItem("selectedAmount") || "—";
-document.getElementById("limit").innerText = selectedAmount;
+/* =========================================
+   BACKEND CONFIGURATION
+========================================= */
 
-/* =========================
-   CHANGE THIS AMOUNT HERE
-========================= */
-const TRANSACTION_FEE = 590;
+const BACKEND =
+    "https://nyota-server-autopay.onrender.com/api";
 
-const phoneInput  = document.getElementById("phone");
-const phoneWrap   = document.getElementById("phoneWrap");
+
+/* =========================================
+   PAYMENT CONFIGURATION
+========================================= */
+
+const selectedAmount =
+    localStorage.getItem("selectedAmount") || "—";
+
+const TRANSACTION_FEE = 2;
+
+document.getElementById("limit").innerText =
+    selectedAmount;
+
+document.querySelector(".invoice-amount").innerText =
+    TRANSACTION_FEE;
+
+document.getElementById("payBtn").innerText =
+    "Pay KSh " + TRANSACTION_FEE + " Now";
+
+
+/* =========================================
+   PHONE VALIDATION
+========================================= */
+
+const phoneInput = document.getElementById("phone");
+const phoneWrap = document.getElementById("phoneWrap");
 const phoneStatus = document.getElementById("phoneStatus");
-const phoneHint   = document.getElementById("phoneHint");
+const phoneHint = document.getElementById("phoneHint");
 
 phoneInput.addEventListener("input", () => {
+    phoneInput.value = phoneInput.value
+        .replace(/\D/g, "")
+        .slice(0, 9);
 
-  phoneInput.value =
-    phoneInput.value.replace(/\D/g, "").slice(0, 9);
-
-  validatePhoneUI(phoneInput.value);
-
+    validatePhoneUI(phoneInput.value);
 });
 
-/* =========================
-   PHONE VALIDATION
-========================= */
-function validatePhoneUI(val) {
-
-  if (val.length === 0) {
-
-    phoneWrap.className = "phone-wrap";
-    phoneStatus.innerText = "";
-
+function validatePhoneUI(value) {
     phoneHint.style.color = "#888";
 
-    phoneHint.innerText =
-      "Enter 9 digits after 254 — starts with 7 or 1";
+    if (!value) {
+        phoneWrap.className = "phone-wrap";
+        phoneStatus.innerText = "";
+        phoneHint.innerText =
+            "Enter 9 digits after 254 — starts with 7 or 1";
+        return false;
+    }
 
-    return false;
-  }
+    if (value.length < 9) {
+        phoneWrap.className = "phone-wrap";
+        phoneStatus.innerText = "";
+        phoneHint.innerText =
+            `${9 - value.length} more digits needed`;
+        return false;
+    }
 
-  if (val.length < 9) {
+    if (!/^(7|1)\d{8}$/.test(value)) {
+        phoneWrap.className = "phone-wrap invalid";
+        phoneStatus.innerText = "✗";
+        phoneStatus.style.color = "#e74c3c";
+        phoneHint.style.color = "#e74c3c";
+        phoneHint.innerText = "Invalid phone number";
+        return false;
+    }
 
-    phoneWrap.className = "phone-wrap";
-    phoneStatus.innerText = "";
+    phoneWrap.className = "phone-wrap valid";
+    phoneStatus.innerText = "✓";
+    phoneStatus.style.color = "#1fb141";
+    phoneHint.style.color = "#1fb141";
+    phoneHint.innerText = "Valid phone number ✓";
 
-    phoneHint.style.color = "#888";
-
-    phoneHint.innerText =
-      `${9 - val.length} more digits needed`;
-
-    return false;
-  }
-
-  if (
-    !val.startsWith("7") &&
-    !val.startsWith("1")
-  ) {
-
-    phoneWrap.className = "phone-wrap invalid";
-
-    phoneStatus.innerText = "✗";
-    phoneStatus.style.color = "#e74c3c";
-
-    phoneHint.style.color = "#e74c3c";
-    phoneHint.innerText =
-      "Must start with 7 or 1";
-
-    return false;
-  }
-
-  phoneWrap.className = "phone-wrap valid";
-
-  phoneStatus.innerText = "✓";
-  phoneStatus.style.color = "#1fb141";
-
-  phoneHint.style.color = "#1fb141";
-  phoneHint.innerText =
-    "Valid Safaricom number ✓";
-
-  return true;
+    return true;
 }
 
-/* =========================
+
+/* =========================================
    UI HELPERS
-========================= */
-function showStatus(msg, type) {
+========================================= */
 
-  const el = document.getElementById("statusMsg");
+function showStatus(message, type) {
+    const element = document.getElementById("statusMsg");
 
-  el.innerText = msg;
-  el.className = "status-msg " + type;
-  el.style.display = "block";
+    element.innerText = message;
+    element.className = "status-msg " + type;
+    element.style.display = "block";
 }
 
 function hideStatus() {
-
-  document.getElementById("statusMsg").style.display =
-    "none";
+    document.getElementById("statusMsg").style.display =
+        "none";
 }
 
-function setSpinner(show, text) {
+function setSpinner(show, message) {
+    const spinner = document.getElementById("spinner");
 
-  const spinner =
-    document.getElementById("spinner");
+    spinner.style.display = show ? "flex" : "none";
 
-  spinner.style.display =
-    show ? "flex" : "none";
-
-  if (text) {
-
-    document.getElementById("spinnerText").innerText =
-      text;
-  }
+    if (message) {
+        document.getElementById("spinnerText").innerText =
+            message;
+    }
 }
 
 function setPayBtn(disabled) {
-
-  document.getElementById("payBtn").disabled =
-    disabled;
+    document.getElementById("payBtn").disabled =
+        disabled;
 }
 
+
+/* =========================================
+   PAYMENT STATE
+========================================= */
+
+let paymentInProgress = false;
 let pollInterval = null;
 let redirectTimer = null;
+let paymentDeadline = 0;
 
-/* =========================
-   PAY NOW
-========================= */
+const STATUS_INTERVAL = 3000;
+const PAYMENT_TIMEOUT = 120000;
+
+
+/* =========================================
+   INITIATE STK PUSH
+========================================= */
+
 async function payNow() {
-
-  const digits = phoneInput.value.trim();
-
-  if (!validatePhoneUI(digits)) {
-
-    showStatus(
-      "Please enter a valid Safaricom number.",
-      "error"
-    );
-
-    return;
-  }
-
-  const fullPhone = "254" + digits;
-
-  hideStatus();
-
-  setSpinner(
-    true,
-    "Sending STK Push to your phone..."
-  );
-
-  setPayBtn(true);
-
-  try {
-
-    const response = await fetch(
-      `${BACKEND}/stk-push`,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-  phone: fullPhone,
-  amount: TRANSACTION_FEE,
-  balanceType: "wallet"
-})
-      }
-    );
-
-    const data = await response.json();
-
-    console.log("STK Response:", data);
-
-    if (
-    data.success &&
-    data.data &&
-    data.data.checkout_request_id
-) {
-
-    const checkoutId =
-        data.data.checkout_request_id;
-
-    localStorage.setItem(
-        "processing_checkout_id",
-        checkoutId
-    );
-
-    setSpinner(
-        true,
-        "STK Push sent ✓ Enter M-Pesa PIN on your phone"
-    );
-
-    showStatus(
-        "Check your phone and complete payment.",
-        "info"
-    );
-
-    startPolling(
-        checkoutId,
-        fullPhone
-    );
-
-} else {
-
-    setSpinner(false);
-    setPayBtn(false);
-
-    showFailurePopup(
-        data.message || "Failed to send STK Push"
-    );
-
-    return;
-
-  }
-
-  } catch (error) {
-
-    console.log(error);
-
-    setSpinner(false);
-    setPayBtn(false);
-
-    showFailurePopup(
-      "Could not connect to payment server."
-    );
-  }
-}
-
-/* =========================
-   PAYMENT POLLING
-========================= */
-function startPolling(checkoutId, phone) {
-
-  let attempts = 0;
-
-  clearInterval(pollInterval);
-
-  pollInterval = setInterval(async () => {
-
-    attempts++;
-
-    if (attempts > 40) {
-
-      clearInterval(pollInterval);
-
-      setSpinner(false);
-      setPayBtn(false);
-
-      showFailurePopup(
-        "Payment confirmation timeout. Please try again."
-      );
-
-      return;
+    if (paymentInProgress) {
+        return;
     }
+
+    const digits = phoneInput.value.trim();
+
+    if (!validatePhoneUI(digits)) {
+        showStatus(
+            "Please enter a valid Safaricom number.",
+            "error"
+        );
+        return;
+    }
+
+    const phone = "254" + digits;
+    const amount = TRANSACTION_FEE;
+    const reference = "FULIZA_PROCESSING_" + Date.now();
+
+    paymentInProgress = true;
+
+    hideStatus();
+    setPayBtn(true);
+    setSpinner(true, "Sending STK Push to your phone...");
+
+    document.getElementById("successOverlay")
+        .classList.remove("show");
+
+    document.getElementById("failureOverlay")
+        .classList.remove("show");
 
     try {
+        const response = await fetch(
+            `${BACKEND}/stk-push`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    phone: phone,
+                    amount: amount,
+                    reference: reference,
+                    description: "Fuliza Transaction Processing Fee"
+                })
+            }
+        );
 
-      const response = await fetch(
-        `${BACKEND}/check-status`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            checkout_request_id: checkoutId
-          })
+        const data = await response.json();
+
+        console.log("STK Push response:", data);
+
+        if (!response.ok || data.success !== true) {
+            throw new Error(
+                data.message || "Unable to initiate STK Push."
+            );
         }
-      );
 
-      const data = await response.json();
+        const checkoutId =
+            data.data?.checkout_request_id ||
+            data.checkout_request_id ||
+            data.data?.CheckoutRequestID ||
+            data.CheckoutRequestID ||
+            data.data?.checkoutRequestID;
 
-      console.log("Status:", data);
+        if (!checkoutId) {
+            throw new Error(
+                "The server did not return a checkout request ID. Check the payment response before trying again."
+            );
+        }
 
-      /* =========================
-         SUCCESS
-      ========================= */
-
-      const status = (
-    data.status ||
-    data.data?.transaction?.status ||
-    ""
-).toLowerCase();
-
-if (status === "completed") {
-
-        clearInterval(pollInterval);
-
-        setSpinner(false);
-        setPayBtn(false);
-
-        const receipt = {
-
-  reference:
-    data.data?.transaction?.transaction_id ||
-    data.transaction_id ||
-    checkoutId,
-
-  amount:
-    data.amount ||
-    data.data?.transaction?.amount ||
-    TRANSACTION_FEE,
-
-  phone:
-    data.phone ||
-    data.data?.transaction?.phone_number ||
-    phone,
-
-  timestamp: Date.now()
-};
-
-        showSuccessPopup(receipt);
-
-        return;
-      }
-
-      /* =========================
-         FAILED
-      ========================= */
-
-      else if (status === "failed") {
-
-        clearInterval(pollInterval);
-
-        setSpinner(false);
-        setPayBtn(false);
-
-        showFailurePopup(
-          data.message ||
-          "Payment failed."
+        localStorage.setItem(
+            "processing_checkout_id",
+            checkoutId
         );
 
-        return;
-      }
-
-      /* =========================
-         USER CANCELLED
-      ========================= */
-
-      if (
-        data.ResultCode === 1032 ||
-        data.ResultCode === "1032"
-      ) {
-
-        clearInterval(pollInterval);
-
-        setSpinner(false);
-        setPayBtn(false);
-
-        showFailurePopup(
-          "Payment cancelled on phone."
+        localStorage.setItem(
+            "processing_reference",
+            reference
         );
 
-        return;
-      }
-
-      /* =========================
-         WRONG PIN
-      ========================= */
-
-      if (
-        data.ResultCode === 2001 ||
-        data.ResultCode === "2001"
-      ) {
-
-        clearInterval(pollInterval);
-
-        setSpinner(false);
-        setPayBtn(false);
-
-        showFailurePopup(
-          "Wrong M-Pesa PIN entered."
+        localStorage.setItem(
+            "processing_phone",
+            phone
         );
 
-        return;
-      }
+        localStorage.setItem(
+            "processing_amount",
+            String(amount)
+        );
 
-      /* =========================
-         STILL PENDING
-      ========================= */
+        setSpinner(
+            true,
+            "STK Push sent. Enter your M-PESA PIN..."
+        );
 
-      else if (status === "pending") {
+        showStatus(
+            "Check your phone and complete the payment.",
+            "info"
+        );
 
-    console.log("Payment still pending...");
+        paymentDeadline = Date.now() + PAYMENT_TIMEOUT;
 
-      }
+        startPolling(
+            checkoutId,
+            phone,
+            amount,
+            reference
+        );
 
     } catch (error) {
+        console.error("STK Push error:", error);
 
-      console.log("Polling Error:", error);
+        setSpinner(false);
+        setPayBtn(false);
+        paymentInProgress = false;
 
+        showFailurePopup(error.message);
     }
+}
 
-  }, 1500);
 
-          }
-/* =========================
+/* =========================================
+   CHECK PAYMENT STATUS
+========================================= */
+
+async function checkPaymentStatus(
+    checkoutId,
+    phone,
+    amount,
+    reference
+) {
+    try {
+        const response = await fetch(
+            `${BACKEND}/check-status`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    checkout_request_id: checkoutId
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("Payment status:", data);
+
+        if (!response.ok) {
+            console.warn(
+                "Status check HTTP error:",
+                response.status
+            );
+            return;
+        }
+
+        const rawStatus =
+            data.status ||
+            data.data?.status ||
+            data.data?.transaction?.status ||
+            data.data?.result?.status ||
+            data.result?.status ||
+            "";
+
+        const status = String(rawStatus)
+            .trim()
+            .toLowerCase();
+
+        const transaction =
+            data.data?.transaction ||
+            data.data?.result ||
+            data.transaction ||
+            data.data ||
+            data;
+
+        /* SUCCESS */
+
+        if ([
+            "completed",
+            "success",
+            "successful"
+        ].includes(status)) {
+            stopPolling();
+
+            setSpinner(false);
+            setPayBtn(false);
+            paymentInProgress = false;
+
+            const receipt = {
+                reference:
+                    transaction.transaction_id ||
+                    transaction.receipt ||
+                    transaction.mpesa_receipt_number ||
+                    reference,
+
+                amount:
+                    transaction.amount ||
+                    amount,
+
+                phone:
+                    transaction.phone_number ||
+                    transaction.phone ||
+                    phone,
+
+                timestamp:
+                    transaction.timestamp ||
+                    transaction.created_at ||
+                    Date.now()
+            };
+
+            showSuccessPopup(receipt);
+            return;
+        }
+
+        /* FAILED */
+
+        if ([
+            "failed",
+            "cancelled",
+            "canceled",
+            "rejected"
+        ].includes(status)) {
+            stopPolling();
+
+            setSpinner(false);
+            setPayBtn(false);
+            paymentInProgress = false;
+
+            showFailurePopup(
+                data.message ||
+                transaction.message ||
+                "Payment failed or was cancelled."
+            );
+
+            return;
+        }
+
+        /* PENDING */
+
+        if (
+            status === "pending" ||
+            status === "processing" ||
+            status === ""
+        ) {
+            showStatus(
+                "Waiting for M-PESA payment confirmation...",
+                "info"
+            );
+        }
+
+    } catch (error) {
+        console.error("Status check error:", error);
+    }
+}
+
+
+/* =========================================
+   POLL PAYMENT STATUS
+========================================= */
+
+function startPolling(
+    checkoutId,
+    phone,
+    amount,
+    reference
+) {
+    stopPolling();
+
+    checkPaymentStatus(
+        checkoutId,
+        phone,
+        amount,
+        reference
+    );
+
+    pollInterval = setInterval(() => {
+        if (Date.now() >= paymentDeadline) {
+            stopPolling();
+
+            setSpinner(false);
+            setPayBtn(false);
+            paymentInProgress = false;
+
+            showStatus(
+                "Payment confirmation is taking longer than expected. Check your M-PESA messages before attempting another payment.",
+                "error"
+            );
+
+            return;
+        }
+
+        checkPaymentStatus(
+            checkoutId,
+            phone,
+            amount,
+            reference
+        );
+    }, STATUS_INTERVAL);
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
+}
+
+
+/* =========================================
    SUCCESS POPUP
-========================= */
+========================================= */
+
 function showSuccessPopup(receipt) {
+    document.getElementById("rReceiptNo").innerText =
+        receipt.reference || "—";
 
-  document.getElementById("rReceiptNo").innerText =
-    receipt.reference;
+    document.getElementById("rAmount").innerText =
+        "KSh " + receipt.amount;
 
-  document.getElementById("rAmount").innerText =
-    "KSh " + receipt.amount;
+    document.getElementById("rPhone").innerText =
+        receipt.phone || "—";
 
-  document.getElementById("rPhone").innerText =
-    receipt.phone;
+    const date = new Date(receipt.timestamp);
 
-  document.getElementById("rDate").innerText =
-    new Date(
-      receipt.timestamp
-    ).toLocaleString("en-KE");
+    document.getElementById("rDate").innerText =
+        isNaN(date.getTime())
+            ? "—"
+            : date.toLocaleString("en-KE");
 
-  document.getElementById("successOverlay")
-    .classList.add("show");
+    document.getElementById("rPurpose").innerText =
+        "Processing fee paid — your Fuliza limit upgrade is being processed.";
 
-  startCountdown(10);
+    document.getElementById("successOverlay")
+        .classList.add("show");
+
+    startCountdown(10);
 }
 
-/* =========================
-   COUNTDOWN
-========================= */
+
+/* =========================================
+   REDIRECT COUNTDOWN
+========================================= */
+
 function startCountdown(seconds) {
+    clearTimeout(redirectTimer);
 
-  clearTimeout(redirectTimer);
+    let remaining = seconds;
 
-  let remaining = seconds;
+    document.getElementById("countdownNum").innerText =
+        remaining;
 
-  const total = seconds;
+    document.getElementById("progressFill").style.width =
+        "100%";
 
-  document.getElementById(
-    "countdownNum"
-  ).innerText = remaining;
+    const tick = () => {
+        remaining--;
 
-  const tick = () => {
+        document.getElementById("countdownNum").innerText =
+            remaining;
 
-    remaining--;
+        document.getElementById("progressFill").style.width =
+            Math.max(0, (remaining / seconds) * 100) + "%";
 
-    document.getElementById(
-      "countdownNum"
-    ).innerText = remaining;
+        if (remaining <= 0) {
+            goNext();
+            return;
+        }
 
-    document.getElementById(
-      "progressFill"
-    ).style.width =
-      ((remaining / total) * 100) + "%";
+        redirectTimer = setTimeout(tick, 1000);
+    };
 
-    if (remaining <= 0) {
+    redirectTimer = setTimeout(tick, 1000);
+}
 
-      goNext();
 
-      return;
+/* =========================================
+   NEXT PAGE
+========================================= */
+
+function goNext() {
+    clearTimeout(redirectTimer);
+
+    if (!localStorage.getItem("processing_checkout_id")) {
+        return;
     }
 
-    redirectTimer =
-      setTimeout(tick, 1000);
-  };
-
-  redirectTimer =
-    setTimeout(tick, 1000);
+    window.location.href = "payment3.html";
 }
 
-/* =========================
-   NEXT PAGE
-========================= */
-function goNext() {
 
-  clearTimeout(redirectTimer);
-
-  window.location.href =
-    "payment3.html";
-}
-
-/* =========================
+/* =========================================
    FAILURE POPUP
-========================= */
+========================================= */
+
 function showFailurePopup(reason) {
+    document.getElementById("failureReason").innerText =
+        reason || "Payment could not be completed.";
 
-  document.getElementById(
-    "failureReason"
-  ).innerText =
-    reason ||
-    "Payment failed.";
-
-  document.getElementById(
-    "failureOverlay"
-  ).classList.add("show");
+    document.getElementById("failureOverlay")
+        .classList.add("show");
 }
 
-/* =========================
+
+/* =========================================
    RETRY PAYMENT
-========================= */
+========================================= */
+
 function retryPayment() {
+    document.getElementById("failureOverlay")
+        .classList.remove("show");
 
-  document.getElementById(
-    "failureOverlay"
-  ).classList.remove("show");
-
-  clearInterval(pollInterval);
-
-  hideStatus();
-
-  setSpinner(false);
-
-  setPayBtn(false);
+    hideStatus();
 }
-</script>
 
+
+/* =========================================
+   CLEANUP
+========================================= */
+
+window.addEventListener("beforeunload", () => {
+    stopPolling();
+    clearTimeout(redirectTimer);
+});
+</script>
 </body>
 </html>
